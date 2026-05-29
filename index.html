@@ -878,7 +878,7 @@ function renderProdutos(q='') {
   const tipoBadge = t => t === 'Serviço' ? '<span class="badge badge-purple">🛠 Serviço</span>' : '<span class="badge badge-blue">📦 Produto</span>';
   document.getElementById('tbl-produtos').innerHTML = list.length ? list.map(p => `
     <tr><td>${p.codigo||'-'}</td><td><strong>${p.nome}</strong></td><td>${tipoBadge(p.tipo)}</td><td>${p.unidade}</td><td>R$ ${p.preco.toFixed(2)}</td>
-    <td class="td-actions"><button class="btn btn-danger btn-sm" onclick="delProduto('${p.id}')">🗑</button></td></tr>`).join('') : '<tr><td colspan="6"><div class="empty-state"><p>Nenhum produto/serviço cadastrado</p></div></td></tr>';
+    <td class="td-actions"><button class="btn btn-secondary btn-sm" onclick="editarProduto('${p.id}')">✏️ Editar</button><button class="btn btn-danger btn-sm" onclick="delProduto('${p.id}')">🗑</button></td></tr>`).join('') : '<tr><td colspan="6"><div class="empty-state"><p>Nenhum produto/serviço cadastrado</p></div></td></tr>';
 }
 async function delProduto(id) { if(confirm('Excluir produto?')) { db.produtos = db.produtos.filter(p => p.id !== id); await save(); renderProdutos(); populateSelects(); } }
 
@@ -896,7 +896,7 @@ function renderSubprodutos() {
   document.getElementById('tbl-subprodutos').innerHTML = db.subprodutos.length ? db.subprodutos.map(s => {
     const pai = db.produtos.find(p => p.id === s.produtoPai);
     return `<tr><td>${pai ? pai.nome : '-'}</td><td>${s.codigo||'-'}</td><td>${s.nome}</td><td>${tipoBadge(s.tipo)}</td><td>${s.unidade}</td><td>R$ ${s.preco.toFixed(2)}</td>
-    <td class="td-actions"><button class="btn btn-danger btn-sm" onclick="delSub('${s.id}')">🗑</button></td></tr>`;
+    <td class="td-actions"><button class="btn btn-secondary btn-sm" onclick="editarSub('${s.id}')">✏️ Editar</button><button class="btn btn-danger btn-sm" onclick="delSub('${s.id}')">🗑</button></td></tr>`;
   }).join('') : '<tr><td colspan="7"><div class="empty-state"><p>Nenhum subproduto cadastrado</p></div></td></tr>';
 }
 async function delSub(id) { if(confirm('Excluir?')) { db.subprodutos = db.subprodutos.filter(s => s.id !== id); await save(); renderSubprodutos(); } }
@@ -912,7 +912,7 @@ function renderClientes(q='') {
   const list = db.clientes.filter(c => !q || c.nome.toLowerCase().includes(q.toLowerCase()));
   document.getElementById('tbl-clientes').innerHTML = list.length ? list.map(c => `
     <tr><td><strong>${c.nome}</strong></td><td>${c.doc||'-'}</td><td>${c.tel||'-'}</td><td>${c.cidade||'-'}</td>
-    <td class="td-actions"><button class="btn btn-danger btn-sm" onclick="delCliente('${c.id}')">🗑</button></td></tr>`).join('') : '<tr><td colspan="6"><div class="empty-state"><p>Nenhum cliente cadastrado</p></div></td></tr>';
+    <td class="td-actions"><button class="btn btn-secondary btn-sm" onclick="editarCliente('${c.id}')">✏️ Editar</button><button class="btn btn-danger btn-sm" onclick="delCliente('${c.id}')">🗑</button></td></tr>`).join('') : '<tr><td colspan="6"><div class="empty-state"><p>Nenhum cliente cadastrado</p></div></td></tr>';
 }
 async function delCliente(id) { if(confirm('Excluir cliente?')) { db.clientes = db.clientes.filter(c => c.id !== id); await save(); renderClientes(); populateSelects(); } }
 
@@ -926,9 +926,119 @@ async function salvarMotivo() {
 function renderMotivos() {
   document.getElementById('tbl-motivos').innerHTML = db.motivos.map(m => `
     <tr><td>${m.nome}</td><td><span class="badge badge-blue">${m.cat}</span></td>
-    <td><button class="btn btn-danger btn-sm" onclick="delMotivo('${m.id}')">🗑</button></td></tr>`).join('');
+    <td class="td-actions"><button class="btn btn-secondary btn-sm" onclick="editarMotivo('${m.id}')">✏️ Editar</button><button class="btn btn-danger btn-sm" onclick="delMotivo('${m.id}')">🗑</button></td></tr>`).join('');
 }
 async function delMotivo(id) { if(confirm('Excluir?')) { db.motivos = db.motivos.filter(m => m.id !== id); await save(); renderMotivos(); } }
+
+
+// ===== EDITAR CADASTROS (reutiliza formulários) =====
+
+function editarProduto(id) {
+  const p = db.produtos.find(x => x.id === id);
+  if (!p) return;
+  document.getElementById('prod-nome').value = p.nome || '';
+  document.getElementById('prod-codigo').value = p.codigo || '';
+  document.getElementById('prod-preco').value = p.preco || '';
+  document.getElementById('prod-desc').value = p.desc || '';
+  if (document.getElementById('prod-tipo')) document.getElementById('prod-tipo').value = p.tipo || 'Produto';
+  if (document.getElementById('prod-unidade')) document.getElementById('prod-unidade').value = p.unidade || 'UN';
+  // Troca botão salvar para atualizar
+  const btn = document.querySelector('#screen-produtos .btn-primary');
+  if (btn) { btn.textContent = '💾 Atualizar Produto'; btn.onclick = () => atualizarProduto(id); }
+  window.scrollTo(0, 0);
+  document.getElementById('prod-nome').focus();
+  toast('Editando produto — modifique e clique em Atualizar', '');
+}
+async function atualizarProduto(id) {
+  const p = db.produtos.find(x => x.id === id);
+  if (!p) return;
+  p.nome = document.getElementById('prod-nome').value.trim();
+  p.codigo = document.getElementById('prod-codigo').value;
+  p.preco = parseFloat(document.getElementById('prod-preco').value) || 0;
+  p.desc = document.getElementById('prod-desc').value;
+  if (document.getElementById('prod-tipo')) p.tipo = document.getElementById('prod-tipo').value;
+  if (document.getElementById('prod-unidade')) p.unidade = document.getElementById('prod-unidade').value;
+  await save(); clearForm('prod'); renderProdutos(); populateSelects();
+  const btn = document.querySelector('#screen-produtos .btn-primary');
+  if (btn) { btn.textContent = '💾 Salvar Produto'; btn.onclick = salvarProduto; }
+  toast('Produto atualizado!', 'success');
+}
+
+function editarSub(id) {
+  const s = db.subprodutos.find(x => x.id === id);
+  if (!s) return;
+  if (document.getElementById('sub-produto-pai')) document.getElementById('sub-produto-pai').value = s.produtoPai || '';
+  document.getElementById('sub-nome').value = s.nome || '';
+  document.getElementById('sub-codigo').value = s.codigo || '';
+  document.getElementById('sub-preco').value = s.preco || '';
+  if (document.getElementById('sub-tipo')) document.getElementById('sub-tipo').value = s.tipo || 'Produto';
+  if (document.getElementById('sub-unidade')) document.getElementById('sub-unidade').value = s.unidade || 'UN';
+  const btn = document.querySelector('#screen-subprodutos .btn-primary');
+  if (btn) { btn.textContent = '💾 Atualizar Subproduto'; btn.onclick = () => atualizarSub(id); }
+  window.scrollTo(0, 0);
+  toast('Editando subproduto — modifique e clique em Atualizar', '');
+}
+async function atualizarSub(id) {
+  const s = db.subprodutos.find(x => x.id === id);
+  if (!s) return;
+  s.produtoPai = document.getElementById('sub-produto-pai')?.value || s.produtoPai;
+  s.nome = document.getElementById('sub-nome').value.trim();
+  s.codigo = document.getElementById('sub-codigo').value;
+  s.preco = parseFloat(document.getElementById('sub-preco').value) || 0;
+  if (document.getElementById('sub-tipo')) s.tipo = document.getElementById('sub-tipo').value;
+  if (document.getElementById('sub-unidade')) s.unidade = document.getElementById('sub-unidade').value;
+  await save(); clearForm('sub'); renderSubprodutos();
+  const btn = document.querySelector('#screen-subprodutos .btn-primary');
+  if (btn) { btn.textContent = '💾 Salvar Subproduto'; btn.onclick = salvarSubproduto; }
+  toast('Subproduto atualizado!', 'success');
+}
+
+function editarCliente(id) {
+  const c = db.clientes.find(x => x.id === id);
+  if (!c) return;
+  document.getElementById('cli-nome').value = c.nome || '';
+  document.getElementById('cli-doc').value = c.doc || '';
+  document.getElementById('cli-tel').value = c.tel || '';
+  document.getElementById('cli-cidade').value = c.cidade || '';
+  const btn = document.querySelector('#screen-clientes .btn-primary');
+  if (btn) { btn.textContent = '💾 Atualizar Cliente'; btn.onclick = () => atualizarCliente(id); }
+  window.scrollTo(0, 0);
+  document.getElementById('cli-nome').focus();
+  toast('Editando cliente — modifique e clique em Atualizar', '');
+}
+async function atualizarCliente(id) {
+  const c = db.clientes.find(x => x.id === id);
+  if (!c) return;
+  c.nome = document.getElementById('cli-nome').value.trim();
+  c.doc = document.getElementById('cli-doc').value;
+  c.tel = document.getElementById('cli-tel').value;
+  c.cidade = document.getElementById('cli-cidade').value;
+  await save(); clearForm('cli'); renderClientes(); populateSelects();
+  const btn = document.querySelector('#screen-clientes .btn-primary');
+  if (btn) { btn.textContent = '💾 Salvar Cliente'; btn.onclick = salvarCliente; }
+  toast('Cliente atualizado!', 'success');
+}
+
+function editarMotivo(id) {
+  const m = db.motivos.find(x => x.id === id);
+  if (!m) return;
+  document.getElementById('mot-nome').value = m.nome || '';
+  if (document.getElementById('mot-cat')) document.getElementById('mot-cat').value = m.cat || '';
+  const btn = document.querySelector('#screen-motivos .btn-primary');
+  if (btn) { btn.textContent = '💾 Atualizar Motivo'; btn.onclick = () => atualizarMotivo(id); }
+  window.scrollTo(0, 0);
+  toast('Editando motivo — modifique e clique em Atualizar', '');
+}
+async function atualizarMotivo(id) {
+  const m = db.motivos.find(x => x.id === id);
+  if (!m) return;
+  m.nome = document.getElementById('mot-nome').value.trim();
+  if (document.getElementById('mot-cat')) m.cat = document.getElementById('mot-cat').value;
+  await save(); document.getElementById('mot-nome').value = ''; renderMotivos();
+  const btn = document.querySelector('#screen-motivos .btn-primary');
+  if (btn) { btn.textContent = '💾 Salvar Motivo'; btn.onclick = salvarMotivo; }
+  toast('Motivo atualizado!', 'success');
+}
 
 // ===== ORÇAMENTOS =====
 function calcLeadTime(entrada, conclusao) {
