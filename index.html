@@ -758,9 +758,12 @@ async function doLogin() {
   errEl.style.display = 'none';
   btn.textContent = 'Entrando...'; btn.disabled = true;
   try {
+    console.log('Tentando login para:', u);
     // Busca por login e compara senha localmente (evita problema de encoding)
     const rows = await supaGet('usuarios', `login=eq.${encodeURIComponent(u)}`);
+    console.log('Resposta Supabase:', JSON.stringify(rows));
     const user = rows && rows.find(r => r.senha === p);
+    console.log('Senha confere?', !!user, '| Senha digitada:', p, '| Senha no banco:', rows && rows[0] && rows[0].senha);
     const rowsFinal = user ? [user] : [];
     if (rowsFinal && rowsFinal.length > 0) {
       usuarioLogado = rowsFinal[0];
