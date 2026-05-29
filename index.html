@@ -717,9 +717,12 @@ const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsI
 let usuarioLogado = null;
 
 async function supaGet(table, filters='') {
-  const res = await fetch(`${SUPA_URL}/rest/v1/${table}?${filters}`, {
-    headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY }
+  const url = `${SUPA_URL}/rest/v1/${table}?${filters}`;
+  console.log('supaGet:', url);
+  const res = await fetch(url, {
+    headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY, 'Content-Type': 'application/json' }
   });
+  if (!res.ok) { const txt = await res.text(); console.error('supaGet error:', res.status, txt); throw new Error(txt); }
   return res.json();
 }
 async function supaPost(table, body) {
@@ -743,6 +746,7 @@ async function supaPatch(table, id, body) {
 function toggleSenha() {
   const inp = document.getElementById('login-pass');
   const btn = document.getElementById('btn-olho');
+  if (!inp || !btn) return;
   if (inp.type === 'password') { inp.type = 'text'; btn.textContent = '🙈'; }
   else { inp.type = 'password'; btn.textContent = '👁'; }
 }
@@ -771,7 +775,8 @@ async function doLogin() {
       errEl.style.display = 'block';
     }
   } catch(e) {
-    errEl.textContent = 'Erro de conexão. Tente novamente.';
+    console.error('Erro login:', e);
+    errEl.textContent = 'Erro: ' + (e.message || 'Verifique sua conexão.');
     errEl.style.display = 'block';
   }
   btn.textContent = 'Entrar'; btn.disabled = false;
@@ -987,7 +992,7 @@ function renderOrcamentos() {
     return `<tr><td><strong>ORC-${String(o._num).padStart(3,'0')}</strong></td><td>${cli?.nome||'-'}</td><td>${prod?.nome||'-'}</td><td>${fmtVal(o.valor)}</td><td>${fmtDate(o.dtEntrada)}</td><td>${fmtDate(o.dtConclusao)||'—'}</td><td>${ltBadge(days)}</td><td>${stBadge}</td><td class="td-actions">${actions}<button class="btn-bell btn-sm" onclick="abrirLembreteOrc('${o.id}')" title="Criar lembrete">🔔</button><button class="btn btn-danger btn-sm" onclick="delOrc('${o.id}')">🗑</button></td></tr>`;
   }).join('') : '<tr><td colspan="9"><div class="empty-state"><div class="ei">📝</div><p>Nenhum orçamento encontrado</p></div></td></tr>';
 }
-function enviarCliente(id) {
+async function enviarCliente(id) {
   const o = db.orcamentos.find(x => x.id === id);
   if (o) { o.status = 'Enviado ao cliente'; await save(); renderOrcamentos(); renderAguardando(); toast('Orçamento enviado ao cliente!', 'success'); }
 }
@@ -1598,7 +1603,7 @@ function openPagarModal(orcId) {
   document.getElementById('modal-pagar').classList.add('open');
 }
 
-function confirmarPagamento() {
+async function confirmarPagamento() {
   const id = document.getElementById('pagar-id').value;
   const o  = db.orcamentos.find(x => x.id === id);
   const dt = document.getElementById('pagar-dt').value;
