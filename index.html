@@ -122,15 +122,15 @@ tr:hover td{background:#FAFBFD;}
 .modal-close{position:absolute;top:16px;right:16px;background:var(--cinza-bg);border:none;border-radius:7px;width:30px;height:30px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;color:var(--cinza-texto);}
 
 /* LOGIN */
-#login-screen{position:fixed;inset:0;background:linear-gradient(135deg,var(--azul-escuro) 0%,var(--azul-medio) 100%);display:flex;align-items:center;justify-content:center;z-index:9999;}
+#login-screen{position:fixed;inset:0;background:linear-gradient(150deg,#0D1B4B 0%,#1a3a7a 50%,#0e5a8a 100%);display:flex;align-items:center;justify-content:center;z-index:9999;}
 .login-box{background:#fff;border-radius:18px;padding:40px 36px;width:360px;text-align:center;}
 .login-logo{width:70px;height:70px;object-fit:contain;margin-bottom:16px;}
 .login-title{font-family:'Nunito',sans-serif;font-weight:800;font-size:22px;color:var(--azul-escuro);margin-bottom:4px;}
 .login-sub{font-size:13px;color:var(--cinza-texto);margin-bottom:28px;}
 .login-input{width:100%;border:1.5px solid var(--cinza-border);border-radius:9px;padding:11px 14px;font-size:14px;font-family:inherit;margin-bottom:12px;outline:none;color:var(--texto);}
 .login-input:focus{border-color:var(--azul-claro);}
-.login-btn{width:100%;background:var(--azul-claro);color:#fff;border:none;border-radius:9px;padding:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:4px;}
-.login-btn:hover{background:#1A96CA;}
+.login-btn{width:100%;background:#0D1B4B;color:#fff;border:none;border-radius:9px;padding:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:4px;}
+.login-btn:hover{background:#29ABE2;}
 .login-err{color:var(--vermelho);font-size:13px;margin-top:8px;display:none;}
 
 /* DASHBOARD CHARTS */
@@ -213,20 +213,30 @@ tr:hover td{background:#FAFBFD;}
 .cobr-pago td{opacity:.7;}
 .cobr-valor-destaque{font-size:15px;font-weight:800;color:var(--azul-escuro);}
 </style>
+
+  <!-- PWA -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="CAP Piscinas">
+  <meta name="application-name" content="CAP Piscinas">
+  <meta name="theme-color" content="#0D1B4B">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon-192.png">
 </head>
 <body>
 
 <!-- LOGIN -->
 <div id="login-screen">
   <div class="login-box">
-    <div style="width:70px;height:70px;background:var(--azul-escuro);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
-      <svg width="40" height="32" viewBox="0 0 40 32" fill="none">
-        <path d="M4 28 L14 8 L20 20 L26 8 L36 28" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-        <circle cx="30" cy="7" r="6" fill="#29ABE2"/>
+    <div style="width:80px;height:80px;background:#0D1B4B;border-radius:50%;margin:0 auto 16px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px #0003;">
+      <svg width="50" height="50" viewBox="0 0 100 100" fill="none">
+        <path d="M12 82 L30 32 L50 64 L70 32 L88 82" stroke="white" stroke-width="11" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        <circle cx="76" cy="26" r="16" fill="#29ABE2"/>
       </svg>
     </div>
-    <div class="login-title">Sistema de Gestão</div>
-    <div class="login-sub">Orçamentos & Projetos</div>
+    <div class="login-title" style="color:#0D1B4B;">CAP Piscinas</div>
+    <div class="login-sub">Sistema de Gestão</div>
     <input type="text" class="login-input" id="login-user" placeholder="Usuário" />
     <div style="position:relative;margin-bottom:12px;">
       <input type="password" class="login-input" id="login-pass" placeholder="Senha" style="margin-bottom:0;padding-right:42px;width:100%;" />
@@ -244,10 +254,11 @@ tr:hover td{background:#FAFBFD;}
 <!-- SIDEBAR -->
 <div id="sidebar">
   <div class="sidebar-logo">
-    <div style="width:38px;height:38px;background:rgba(255,255,255,.15);border-radius:8px;display:flex;align-items:center;justify-content:center;">
-      <svg width="24" height="20" viewBox="0 0 40 32" fill="none">
-        <path d="M4 28 L14 8 L20 20 L26 8 L36 28" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-        <circle cx="30" cy="7" r="6" fill="#29ABE2"/>
+    <div style="width:44px;height:44px;background:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px #0004;">
+      <svg width="30" height="30" viewBox="0 0 100 100" fill="none">
+        <ellipse cx="50" cy="55" rx="40" ry="38" fill="#0D1B4B"/>
+        <path d="M18 75 L32 35 L50 62 L68 35 L82 75" stroke="white" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        <circle cx="72" cy="28" r="14" fill="#29ABE2"/>
       </svg>
     </div>
     <div class="sidebar-logo-text">Gestão<span>Orçamentos & Projetos</span></div>
@@ -280,6 +291,8 @@ tr:hover td{background:#FAFBFD;}
       <button id="btn-trocar-senha" onclick="abrirTrocarSenha()" style="flex:1;background:rgba(255,255,255,.12);color:#fff;border:none;border-radius:6px;padding:5px 0;font-size:11px;cursor:pointer;">🔑 Senha</button>
       <button onclick="logout()" style="flex:1;background:rgba(255,100,100,.25);color:#fff;border:none;border-radius:6px;padding:5px 0;font-size:11px;cursor:pointer;">🚪 Sair</button>
     </div>
+    <button id="btn-instalar-app" onclick="instalarApp()" style="display:none;width:100%;background:rgba(41,171,226,.25);color:#fff;border:1px solid rgba(41,171,226,.4);border-radius:6px;padding:7px 0;font-size:11px;cursor:pointer;align-items:center;justify-content:center;gap:6px;margin-top:4px;">📲 Instalar App
+    </div>
   </div>
 </div>
 
@@ -298,7 +311,7 @@ tr:hover td{background:#FAFBFD;}
     <!-- DASHBOARD -->
     <div class="screen active" id="screen-dashboard">
       <div class="filters-bar">
-        <label>Fornecedor:</label>
+        <label>Cliente:</label>
         <select id="dash-filter-cliente" onchange="renderDashboard()"><option value="">Todos</option></select>
         <label>Mês:</label>
         <select id="dash-filter-mes" onchange="renderDashboard()">
@@ -404,7 +417,7 @@ tr:hover td{background:#FAFBFD;}
     <!-- LANÇAMENTO ORÇAMENTO -->
     <div class="screen" id="screen-orcamentos">
       <div class="filters-bar">
-        <label>Fornecedor:</label>
+        <label>Cliente:</label>
         <select id="orc-filter-cli" onchange="renderOrcamentos()"><option value="">Todos</option></select>
         <label>Mês:</label>
         <select id="orc-filter-mes" onchange="renderOrcamentos()"><option value="">Todos</option><option>Jan</option><option>Fev</option><option>Mar</option><option>Abr</option><option>Mai</option><option>Jun</option><option>Jul</option><option>Ago</option><option>Set</option><option>Out</option><option>Nov</option><option>Dez</option></select>
@@ -436,7 +449,7 @@ tr:hover td{background:#FAFBFD;}
     <!-- AGUARDANDO CLIENTE -->
     <div class="screen" id="screen-aguardando">
       <div class="filters-bar">
-        <label>Fornecedor:</label>
+        <label>Cliente:</label>
         <select id="ag-filter-cli" onchange="renderAguardando()"><option value="">Todos</option></select>
         <label>Mês:</label>
         <select id="ag-filter-mes" onchange="renderAguardando()"><option value="">Todos</option><option>Jan</option><option>Fev</option><option>Mar</option><option>Abr</option><option>Mai</option><option>Jun</option><option>Jul</option><option>Ago</option><option>Set</option><option>Out</option><option>Nov</option><option>Dez</option></select>
@@ -452,7 +465,7 @@ tr:hover td{background:#FAFBFD;}
     <!-- INSTALAÇÃO -->
     <div class="screen" id="screen-instalacao">
       <div class="filters-bar">
-        <label>Fornecedor:</label>
+        <label>Cliente:</label>
         <select id="inst-filter-cli" onchange="renderInstalacao()"><option value="">Todos</option></select>
         <label>Mês:</label>
         <select id="inst-filter-mes" onchange="renderInstalacao()"><option value="">Todos</option><option>Jan</option><option>Fev</option><option>Mar</option><option>Abr</option><option>Mai</option><option>Jun</option><option>Jul</option><option>Ago</option><option>Set</option><option>Out</option><option>Nov</option><option>Dez</option></select>
@@ -468,7 +481,7 @@ tr:hover td{background:#FAFBFD;}
     <!-- CONCLUÍDOS -->
     <div class="screen" id="screen-concluidos">
       <div class="filters-bar">
-        <label>Fornecedor:</label>
+        <label>Cliente:</label>
         <select id="con-filter-cli" onchange="renderConcluidos()"><option value="">Todos</option></select>
         <label>Mês:</label>
         <select id="con-filter-mes" onchange="renderConcluidos()"><option value="">Todos</option><option>Jan</option><option>Fev</option><option>Mar</option><option>Abr</option><option>Mai</option><option>Jun</option><option>Jul</option><option>Ago</option><option>Set</option><option>Out</option><option>Nov</option><option>Dez</option></select>
@@ -485,7 +498,7 @@ tr:hover td{background:#FAFBFD;}
     <!-- COBRANÇA -->
     <div class="screen" id="screen-cobranca">
       <div class="filters-bar">
-        <label>Fornecedor:</label>
+        <label>Cliente:</label>
         <select id="cobr-filter-cli" onchange="renderCobranca()"><option value="">Todos</option></select>
         <label>Status:</label>
         <select id="cobr-filter-status" onchange="renderCobranca()">
@@ -578,7 +591,7 @@ tr:hover td{background:#FAFBFD;}
     <!-- REPROVADOS -->
     <div class="screen" id="screen-reprovados">
       <div class="filters-bar">
-        <label>Fornecedor:</label>
+        <label>Cliente:</label>
         <select id="rep-filter-cli" onchange="renderReprovados()"><option value="">Todos</option></select>
         <label>Mês:</label>
         <select id="rep-filter-mes" onchange="renderReprovados()"><option value="">Todos</option><option>Jan</option><option>Fev</option><option>Mar</option><option>Abr</option><option>Mai</option><option>Jun</option><option>Jul</option><option>Ago</option><option>Set</option><option>Out</option><option>Nov</option><option>Dez</option></select>
@@ -2323,5 +2336,34 @@ atualizarBellBadge();
   </div>
 </div>
 
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
+
+// PWA Install prompt
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  const btn = document.getElementById('btn-instalar-app');
+  if (btn) btn.style.display = 'flex';
+});
+window.addEventListener('appinstalled', () => {
+  const btn = document.getElementById('btn-instalar-app');
+  if (btn) btn.style.display = 'none';
+  deferredPrompt = null;
+});
+async function instalarApp() {
+  if (!deferredPrompt) { toast('Use o menu do navegador para instalar', ''); return; }
+  deferredPrompt.prompt();
+  const { outcome } = await deferredPrompt.userChoice;
+  if (outcome === 'accepted') toast('App instalado com sucesso!', 'success');
+  deferredPrompt = null;
+}
+</script>
 </body>
 </html>
