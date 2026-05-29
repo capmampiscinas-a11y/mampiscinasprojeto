@@ -478,7 +478,7 @@ tr:hover td{background:#FAFBFD;}
       <div class="stats-grid" id="con-stats"></div>
       <div class="table-wrap">
         <div class="table-header"><h3>✅ Projetos Concluídos</h3></div>
-        <div class="table-scroll"><table><thead><tr><th>Código</th><th>Cliente</th><th>Produto</th><th>Valor</th><th>Conclusão</th><th>Lead Time Total</th></tr></thead><tbody id="tbl-concluidos"></tbody></table></div>
+        <div class="table-scroll"><table><thead><tr><th>Código</th><th>Cliente</th><th>Produto</th><th>Valor</th><th>Conclusão</th><th>Lead Time Total</th><th>Ações</th></tr></thead><tbody id="tbl-concluidos"></tbody></table></div>
       </div>
     </div>
 
@@ -587,7 +587,7 @@ tr:hover td{background:#FAFBFD;}
       </div>
       <div class="table-wrap">
         <div class="table-header"><h3>❌ Orçamentos Reprovados</h3></div>
-        <div class="table-scroll"><table><thead><tr><th>Código</th><th>Cliente</th><th>Produto</th><th>Valor</th><th>Reprovado em</th><th>Motivo</th><th>Observação</th></tr></thead><tbody id="tbl-reprovados"></tbody></table></div>
+        <div class="table-scroll"><table><thead><tr><th>Código</th><th>Cliente</th><th>Produto</th><th>Valor</th><th>Reprovado em</th><th>Motivo</th><th>Observação</th><th>Ações</th></tr></thead><tbody id="tbl-reprovados"></tbody></table></div>
       </div>
     </div>
 
@@ -995,7 +995,7 @@ function renderOrcamentos() {
     const days = calcLeadTime(o.dtEntrada, o.dtConclusao);
     const stBadge = o.status === 'Em andamento' ? '<span class="badge badge-blue">Em andamento</span>' : '<span class="badge badge-orange">Enviado ao cliente</span>';
     const actions = o.status === 'Enviado ao cliente' ? `<button class="btn btn-primary btn-sm" onclick="openFollowup('${o.id}')">📞 Follow-up</button>` : `<button class="btn btn-secondary btn-sm" onclick="enviarCliente('${o.id}')">📤 Enviar</button>`;
-    return `<tr><td><strong>ORC-${String(o._num).padStart(3,'0')}</strong></td><td>${cli?.nome||'-'}</td><td>${prod?.nome||'-'}</td><td>${fmtVal(o.valor)}</td><td>${fmtDate(o.dtEntrada)}</td><td>${fmtDate(o.dtConclusao)||'—'}</td><td>${ltBadge(days)}</td><td>${stBadge}</td><td class="td-actions">${actions}<button class="btn-bell btn-sm" onclick="abrirLembreteOrc('${o.id}')" title="Criar lembrete">🔔</button><button class="btn btn-danger btn-sm" onclick="delOrc('${o.id}')">🗑</button></td></tr>`;
+    return `<tr><td><strong>ORC-${String(o._num).padStart(3,'0')}</strong></td><td>${cli?.nome||'-'}</td><td>${prod?.nome||'-'}</td><td>${fmtVal(o.valor)}</td><td>${fmtDate(o.dtEntrada)}</td><td>${fmtDate(o.dtConclusao)||'—'}</td><td>${ltBadge(days)}</td><td>${stBadge}</td><td class="td-actions">${actions}<button class="btn-bell btn-sm" onclick="abrirLembreteOrc('${o.id}')" title="Criar lembrete">🔔</button><button class="btn btn-secondary btn-sm" onclick="abrirEditarOrc('${o.id}')">✏️</button><button class="btn btn-danger btn-sm" onclick="delOrc('${o.id}')">🗑</button></td></tr>`;
   }).join('') : '<tr><td colspan="9"><div class="empty-state"><div class="ei">📝</div><p>Nenhum orçamento encontrado</p></div></td></tr>';
 }
 async function enviarCliente(id) {
@@ -1016,7 +1016,7 @@ function renderAguardando() {
     const fu = o.followup || '';
     return `<tr><td><strong>ORC-${String(o._num).padStart(3,'0')}</strong></td><td>${cli?.nome||'-'}</td><td>${prod?.nome||'-'}</td><td>${fmtVal(o.valor)}</td><td>${fmtDate(o.dtEntrada)}</td>
     <td><span class="badge ${fuBadges[fu]}">${fuLabels[fu]}</span></td>
-    <td class="td-actions"><button class="btn btn-primary btn-sm" onclick="openFollowup('${o.id}')">📞 Atualizar</button><button class="btn-bell btn-sm" onclick="abrirLembreteOrc('${o.id}')" title="Criar lembrete">🔔</button></td></tr>`;
+    <td class="td-actions"><button class="btn btn-primary btn-sm" onclick="openFollowup('${o.id}')">📞 Atualizar</button><button class="btn btn-secondary btn-sm" onclick="abrirEditarOrc('${o.id}')">✏️</button><button class="btn btn-sm" style="background:#fef3c7;color:#92400e;border:1px solid #fcd34d;border-radius:6px;padding:4px 8px;cursor:pointer;font-size:12px;" onclick="abrirReverter('${o.id}','aguardando')">↩️</button><button class="btn-bell btn-sm" onclick="abrirLembreteOrc('${o.id}')" title="Criar lembrete">🔔</button></td></tr>`;
   }).join('') : '<tr><td colspan="7"><div class="empty-state"><div class="ei">⏳</div><p>Nenhum orçamento aguardando retorno</p></div></td></tr>';
 }
 
@@ -1068,6 +1068,8 @@ function renderInstalacao() {
     <td><span class="badge badge-orange">Em andamento</span></td>
     <td class="td-actions">
       <button class="btn btn-success btn-sm" onclick="openInstModal('${o.id}')">▶ Avançar</button>
+      <button class="btn btn-secondary btn-sm" onclick="abrirEditarOrc('${o.id}')">✏️</button>
+      <button class="btn btn-sm" style="background:#fef3c7;color:#92400e;border:1px solid #fcd34d;border-radius:6px;padding:4px 8px;cursor:pointer;font-size:12px;" onclick="abrirReverter('${o.id}','instalacao')">↩️ Reverter</button>
       <button class="btn-bell btn-sm" onclick="abrirLembreteOrc('${o.id}')" title="Criar lembrete">🔔</button>
     </td></tr>`;
   }).join('') : '<tr><td colspan="9"><div class="empty-state"><div class="ei">🏗️</div><p>Nenhum projeto em instalação</p></div></td></tr>';
@@ -1103,8 +1105,8 @@ function renderConcluidos() {
     const cli = db.clientes.find(c => c.id === o.clienteId);
     const prod = db.produtos.find(p => p.id === o.produtoId);
     const days = calcLeadTime(o.dtEntrada, o.dtConcluido || o.dtInstalacaoConclusao);
-    return `<tr><td><strong>ORC-${String(o._num).padStart(3,'0')}</strong></td><td>${cli?.nome||'-'}</td><td>${prod?.nome||'-'}</td><td>${fmtVal(o.valor)}</td><td>${fmtDate(o.dtConcluido||o.dtInstalacaoConclusao)}</td><td>${ltBadge(days)}</td></tr>`;
-  }).join('') : '<tr><td colspan="6"><div class="empty-state"><div class="ei">✅</div><p>Nenhum projeto concluído ainda</p></div></td></tr>';
+    return `<tr><td><strong>ORC-${String(o._num).padStart(3,'0')}</strong></td><td>${cli?.nome||'-'}</td><td>${prod?.nome||'-'}</td><td>${fmtVal(o.valor)}</td><td>${fmtDate(o.dtConcluido||o.dtInstalacaoConclusao)}</td><td>${ltBadge(days)}</td><td class="td-actions"><button class="btn btn-secondary btn-sm" onclick="abrirEditarOrc('${o.id}')">✏️ Editar</button><button class="btn btn-sm" style="background:#fef3c7;color:#92400e;border:1px solid #fcd34d;border-radius:6px;padding:4px 8px;cursor:pointer;font-size:12px;" onclick="abrirReverter('${o.id}','concluido')">↩️ Reverter</button></td></tr>`;
+  }).join('') : '<tr><td colspan="7"><div class="empty-state"><div class="ei">✅</div><p>Nenhum projeto concluído ainda</p></div></td></tr>';
 }
 
 
@@ -1447,6 +1449,91 @@ function calDiaDetalhe(dia) {
   alert(msg);
 }
 
+
+// ===== EDITAR ORÇAMENTO =====
+function abrirEditarOrc(id) {
+  const o = db.orcamentos.find(x => x.id === id);
+  if (!o) return;
+  document.getElementById('edit-orc-id').value = id;
+  // Populate selects
+  const selCli = document.getElementById('edit-orc-cli');
+  const selProd = document.getElementById('edit-orc-prod');
+  selCli.innerHTML = db.clientes.map(c => `<option value="${c.id}" ${c.id===o.clienteId?'selected':''}>${c.nome}</option>`).join('');
+  selProd.innerHTML = db.produtos.map(p => `<option value="${p.id}" ${p.id===o.produtoId?'selected':''}>${p.nome}</option>`).join('');
+  document.getElementById('edit-orc-valor').value = o.valor || '';
+  document.getElementById('edit-orc-dt').value = o.dtEntrada || '';
+  document.getElementById('edit-orc-dtconclusao').value = o.dtConclusao || '';
+  document.getElementById('edit-orc-obs').value = o.obs || '';
+  document.getElementById('modal-editar-orc').classList.add('open');
+}
+async function salvarEdicaoOrc() {
+  const id = document.getElementById('edit-orc-id').value;
+  const o = db.orcamentos.find(x => x.id === id);
+  if (!o) return;
+  o.clienteId = document.getElementById('edit-orc-cli').value;
+  o.produtoId = document.getElementById('edit-orc-prod').value;
+  o.valor = parseFloat(document.getElementById('edit-orc-valor').value) || 0;
+  o.dtEntrada = document.getElementById('edit-orc-dt').value;
+  o.dtConclusao = document.getElementById('edit-orc-dtconclusao').value;
+  o.obs = document.getElementById('edit-orc-obs').value;
+  await save();
+  closeModal('modal-editar-orc');
+  // Refresh all screens
+  renderOrcamentos(); renderAguardando(); renderInstalacao(); renderConcluidos(); renderReprovados(); renderCobranca();
+  toast('Orçamento atualizado!', 'success');
+}
+
+// ===== REVERTER STATUS =====
+let reverterIdPendente = null;
+let reverterTipoPendente = null;
+
+function abrirReverter(id, tipo) {
+  reverterIdPendente = id;
+  reverterTipoPendente = tipo;
+  const msgs = {
+    'concluido':   '⚠️ O projeto voltará de <strong>Concluído</strong> para <strong>Instalação em andamento</strong>.',
+    'instalacao':  '⚠️ O projeto voltará de <strong>Instalação</strong> para <strong>Aguardando Cliente</strong>.',
+    'aguardando':  '⚠️ O orçamento voltará de <strong>Aguardando</strong> para <strong>Em andamento</strong>.',
+    'reprovado':   '⚠️ O orçamento voltará de <strong>Reprovado</strong> para <strong>Aguardando Cliente</strong>.',
+  };
+  document.getElementById('reverter-msg').innerHTML = msgs[tipo] || 'Confirma a reversão?';
+  document.getElementById('modal-reverter').classList.add('open');
+}
+
+async function confirmarReverter() {
+  const o = db.orcamentos.find(x => x.id === reverterIdPendente);
+  if (!o) return;
+  switch (reverterTipoPendente) {
+    case 'concluido':
+      o.statusInstalacao = 'Em andamento';
+      o.dtConcluido = '';
+      o.statusCobranca = '';
+      o.dtPagamento = '';
+      break;
+    case 'instalacao':
+      o.followup = '3ª Ligação';
+      o.statusInstalacao = '';
+      o.dtInstalacaoInicio = '';
+      o.dtInstalacaoConclusao = '';
+      break;
+    case 'aguardando':
+      o.status = 'Em andamento';
+      o.followup = '';
+      break;
+    case 'reprovado':
+      o.followup = '3ª Ligação';
+      o.status = 'Enviado ao cliente';
+      o.motivoId = '';
+      o.obsReprov = '';
+      o.dtReprov = '';
+      break;
+  }
+  await save();
+  closeModal('modal-reverter');
+  renderOrcamentos(); renderAguardando(); renderInstalacao(); renderConcluidos(); renderReprovados(); updateBadges();
+  toast('Status revertido com sucesso!', 'success');
+}
+
 // ===== REPROVADOS =====
 function renderReprovados() {
   let list = db.orcamentos.filter(o => o.followup === 'Reprovado');
@@ -1455,7 +1542,7 @@ function renderReprovados() {
     const cli = db.clientes.find(c => c.id === o.clienteId);
     const prod = db.produtos.find(p => p.id === o.produtoId);
     const mot = db.motivos.find(m => m.id === o.motivoId);
-    return `<tr><td><strong>ORC-${String(o._num).padStart(3,'0')}</strong></td><td>${cli?.nome||'-'}</td><td>${prod?.nome||'-'}</td><td>${fmtVal(o.valor)}</td><td>${fmtDate(o.dtReprov)}</td><td><span class="badge badge-red">${mot?.nome||'-'}</span></td><td>${o.obsReprov||'-'}</td></tr>`;
+    return `<tr><td><strong>ORC-${String(o._num).padStart(3,'0')}</strong></td><td>${cli?.nome||'-'}</td><td>${prod?.nome||'-'}</td><td>${fmtVal(o.valor)}</td><td>${fmtDate(o.dtReprov)}</td><td><span class="badge badge-red">${mot?.nome||'-'}</span></td><td>${o.obsReprov||'-'}</td><td class="td-actions"><button class="btn btn-secondary btn-sm" onclick="abrirEditarOrc('${o.id}')">✏️</button><button class="btn btn-sm" style="background:#fef3c7;color:#92400e;border:1px solid #fcd34d;border-radius:6px;padding:4px 8px;cursor:pointer;font-size:12px;" onclick="abrirReverter('${o.id}','reprovado')">↩️ Reverter</button></td></tr>`;
   }).join('') : '<tr><td colspan="7"><div class="empty-state"><div class="ei">❌</div><p>Nenhum orçamento reprovado</p></div></td></tr>';
 }
 
@@ -2073,6 +2160,55 @@ atualizarBellBadge();
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('modal-trocar-senha')">Cancelar</button>
       <button class="btn btn-primary" onclick="confirmarTrocarSenha()">✅ Confirmar</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- MODAL EDITAR ORÇAMENTO -->
+<div class="modal-overlay" id="modal-editar-orc">
+  <div class="modal" style="max-width:500px;">
+    <div class="modal-header"><h3>✏️ Editar Orçamento</h3><button class="modal-close" onclick="closeModal('modal-editar-orc')">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="edit-orc-id">
+      <div class="form-grid">
+        <div class="form-group"><label>Cliente</label>
+          <select id="edit-orc-cli" style="width:100%;border:1.5px solid var(--cinza-border);border-radius:9px;padding:11px 14px;font-size:14px;font-family:inherit;"></select>
+        </div>
+        <div class="form-group"><label>Produto/Serviço</label>
+          <select id="edit-orc-prod" style="width:100%;border:1.5px solid var(--cinza-border);border-radius:9px;padding:11px 14px;font-size:14px;font-family:inherit;"></select>
+        </div>
+        <div class="form-group"><label>Valor (R$)</label>
+          <input type="number" id="edit-orc-valor" step="0.01" min="0">
+        </div>
+        <div class="form-group"><label>Data de Entrada</label>
+          <input type="date" id="edit-orc-dt">
+        </div>
+        <div class="form-group"><label>Previsão de Conclusão</label>
+          <input type="date" id="edit-orc-dtconclusao">
+        </div>
+        <div class="form-group"><label>Observações</label>
+          <textarea id="edit-orc-obs" rows="3" style="width:100%;border:1.5px solid var(--cinza-border);border-radius:9px;padding:11px 14px;font-size:14px;font-family:inherit;resize:vertical;"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-editar-orc')">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarEdicaoOrc()">💾 Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL REVERTER STATUS -->
+<div class="modal-overlay" id="modal-reverter">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-header"><h3>↩️ Reverter Status</h3><button class="modal-close" onclick="closeModal('modal-reverter')">✕</button></div>
+    <div class="modal-body">
+      <p id="reverter-msg" style="font-size:14px;color:var(--texto);margin-bottom:0;"></p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-reverter')">Cancelar</button>
+      <button class="btn btn-primary" style="background:#f59e0b;" onclick="confirmarReverter()">↩️ Confirmar Reversão</button>
     </div>
   </div>
 </div>
