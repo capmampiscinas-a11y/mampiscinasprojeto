@@ -212,6 +212,36 @@ tr:hover td{background:#FAFBFD;}
 .cobr-pago{background:var(--verde-bg);border-left:4px solid var(--verde);}
 .cobr-pago td{opacity:.7;}
 .cobr-valor-destaque{font-size:15px;font-weight:800;color:var(--azul-escuro);}
+
+/* ===== MOBILE / RESPONSIVO ===== */
+#btn-hamburger{display:none;background:none;border:none;cursor:pointer;padding:6px;border-radius:8px;flex-direction:column;gap:5px;align-items:center;justify-content:center;}
+#btn-hamburger span{display:block;width:22px;height:2.5px;background:var(--azul-escuro);border-radius:2px;transition:.25s;}
+#btn-hamburger.open span:nth-child(1){transform:translateY(7.5px) rotate(45deg);}
+#btn-hamburger.open span:nth-child(2){opacity:0;transform:scaleX(0);}
+#btn-hamburger.open span:nth-child(3){transform:translateY(-7.5px) rotate(-45deg);}
+
+#sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:99;backdrop-filter:blur(2px);}
+#sidebar-overlay.open{display:block;}
+
+@media(max-width:768px){
+  #btn-hamburger{display:flex;}
+  #sidebar{transform:translateX(-100%);z-index:200;box-shadow:4px 0 24px #0004;}
+  #sidebar.open{transform:translateX(0);}
+  #main{margin-left:0;}
+  #content{padding:14px 10px;}
+  #topbar{padding:0 14px;gap:8px;}
+  .topbar-title{font-size:15px;}
+  .stats-grid{grid-template-columns:repeat(2,1fr);gap:10px;}
+  .filters-bar{gap:8px;}
+  .filters-bar select,.filters-bar input{font-size:12px;padding:5px 8px;}
+  .form-grid,.form-grid-3{grid-template-columns:1fr!important;}
+  .kanban{grid-template-columns:1fr!important;}
+  .modal{max-width:100%!important;width:calc(100vw - 32px);}
+  #content{padding-bottom:32px;}
+  #permissoes-grid{grid-template-columns:1fr 1fr!important;}
+  #screen-dashboard > div[style]{display:block!important;}
+  #screen-dashboard > div[style] > .table-wrap{margin-bottom:16px;}
+}
 </style>
 
   <!-- PWA -->
@@ -252,6 +282,8 @@ tr:hover td{background:#FAFBFD;}
 </div>
 
 <!-- SIDEBAR -->
+<div id="sidebar-overlay" onclick="fecharSidebar()"></div>
+
 <div id="sidebar">
   <div class="sidebar-logo">
     <div style="width:44px;height:44px;background:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px #0004;">
@@ -299,6 +331,7 @@ tr:hover td{background:#FAFBFD;}
 <!-- MAIN -->
 <div id="main">
   <div id="topbar">
+    <button id="btn-hamburger" onclick="toggleSidebar()" aria-label="Menu"><span></span><span></span><span></span></button>
     <div class="topbar-title" id="topbar-title">Dashboard</div>
     <div class="topbar-actions" id="topbar-actions">
       <button class="bell-btn" onclick="abrirPainelLembretes()" title="Lembretes">
@@ -696,6 +729,18 @@ async function loadDB() {
   }
   showLoading(false);
 }
+// Sincronização silenciosa em background (sem mostrar loading overlay)
+async function syncBackground() {
+  try {
+    const rows = await supaGet('dados', 'id=eq.principal');
+    if (rows && rows.length > 0) {
+      db = rows[0].payload;
+      orcCounter = db.orcamentos && db.orcamentos.length > 0 ? Math.max(...db.orcamentos.map(o => o._num || 1)) + 1 : 1;
+    }
+  } catch(e) {
+    console.error('Erro syncBackground:', e);
+  }
+}
 async function save() {
   try {
     await supaPatch('dados', 'principal', {payload: db, updated_at: new Date().toISOString()});
@@ -788,8 +833,8 @@ async function doLogin() {
       document.querySelector('.user-info').innerHTML = `${usuarioLogado.nome}<span>${usuarioLogado.login}</span>`;
       document.querySelector('.user-avatar').textContent = usuarioLogado.nome.slice(0,2).toUpperCase();
       await loadDB(); populateSelects(); renderDashboard(); updateBadges(); updateBadgeCobranca(); initCalFiltros(); applyPerms();
-      // Sync automático a cada 30 segundos
-      setInterval(async () => { await loadDB(); updateBadges(); updateBadgeCobranca(); }, 30000);
+      // Sync automático a cada 30 segundos (silencioso, sem piscar)
+      setInterval(async () => { await syncBackground(); updateBadges(); updateBadgeCobranca(); }, 30000);
     } else {
       errEl.style.display = 'block';
     }
@@ -2365,5 +2410,38 @@ async function instalarApp() {
   deferredPrompt = null;
 }
 </script>
+
+<script>
+// ===== MENU HAMBÚRGUER MOBILE =====
+function toggleSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+  const btn = document.getElementById('btn-hamburger');
+  const isOpen = sidebar.classList.contains('open');
+  if (isOpen) {
+    sidebar.classList.remove('open');
+    overlay.classList.remove('open');
+    btn.classList.remove('open');
+  } else {
+    sidebar.classList.add('open');
+    overlay.classList.add('open');
+    btn.classList.add('open');
+  }
+}
+function fecharSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebar-overlay').classList.remove('open');
+  document.getElementById('btn-hamburger').classList.remove('open');
+}
+// Fechar sidebar ao clicar em item do menu (mobile)
+document.querySelectorAll('.menu-item').forEach(item => {
+  item.addEventListener('click', () => {
+    if (window.innerWidth <= 768) fecharSidebar();
+  });
+});
+// Fechar ao pressionar ESC
+document.addEventListener('keydown', e => { if (e.key === 'Escape') fecharSidebar(); });
+</script>
+
 </body>
 </html>
