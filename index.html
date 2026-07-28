@@ -116,10 +116,28 @@ tr:hover td{background:#FAFBFD;}
 
 /* MODAL */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:999;display:none;align-items:center;justify-content:center;}
+.modal-overlay-top{z-index:1100;} /* fica acima de outros modais já abertos (ex: cadastro rápido dentro do Novo Orçamento) */
 .modal-overlay.open{display:flex;}
 .modal{background:#fff;border-radius:14px;padding:24px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;position:relative;}
 .modal-title{font-family:'Nunito',sans-serif;font-weight:800;font-size:17px;color:var(--azul-escuro);margin-bottom:16px;}
 .modal-close{position:absolute;top:16px;right:16px;background:var(--cinza-bg);border:none;border-radius:7px;width:30px;height:30px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;color:var(--cinza-texto);}
+
+/* COMBOBOX COM BUSCA (autocomplete: cliente, produto, itens) */
+.combo{position:relative;}
+.combo-search{width:100%;border:1.5px solid var(--cinza-border);border-radius:8px;padding:9px 12px;font-size:13px;font-family:inherit;color:var(--texto);outline:none;transition:.15s;}
+.combo-search:focus{border-color:var(--azul-claro);box-shadow:0 0 0 3px rgba(41,171,226,.12);}
+.combo-dropdown{position:fixed;background:#fff;border:1.5px solid var(--cinza-border);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.16);max-height:220px;overflow-y:auto;z-index:2000;display:none;}
+.combo-item{padding:8px 12px;font-size:13px;cursor:pointer;color:var(--texto);}
+.combo-item:hover{background:var(--azul-bg);}
+.combo-item-novo{color:var(--azul-medio);font-weight:700;border-top:1px solid var(--cinza-border);}
+.combo-empty{padding:9px 12px;font-size:12px;color:var(--cinza-texto);}
+
+/* FOTOS DE REFERÊNCIA (somente conferência interna, não entram no PDF) */
+.foto-slot{display:flex;flex-direction:column;}
+.foto-preview{width:100%;aspect-ratio:1/1;border:2px dashed var(--cinza-border);border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;background:var(--cinza-bg);overflow:hidden;transition:.15s;}
+.foto-preview:hover{border-color:var(--azul-claro);}
+.foto-preview img{width:100%;height:100%;object-fit:cover;}
+.foto-placeholder{font-size:11px;color:var(--cinza-texto);text-align:center;padding:8px;}
 
 /* LOGIN */
 #login-screen{position:fixed;inset:0;background:linear-gradient(150deg,#0D1B4B 0%,#1a3a7a 50%,#0e5a8a 100%);display:flex;align-items:center;justify-content:center;z-index:9999;}
@@ -306,6 +324,8 @@ tr:hover td{background:#FAFBFD;}
     <div class="menu-section">Orçamentos</div>
     <div class="menu-item" onclick="nav('orcamentos')"><span class="mi">📝</span> Lançar Orçamento</div>
     <div class="menu-item" onclick="nav('aguardando')"><span class="mi">⏳</span> Aguardando Cliente <span class="menu-badge" id="badge-aguardando">0</span></div>
+    <div class="menu-section">Avisos</div>
+    <div class="menu-item" onclick="nav('lembretes')"><span class="mi">🔔</span> Lembretes <span class="menu-badge" id="badge-lembretes">0</span></div>
     <div class="menu-section">Projetos</div>
     <div class="menu-item" onclick="nav('instalacao')"><span class="mi">🏗️</span> Instalação</div>
     <div class="menu-item" onclick="nav('calendario')"><span class="mi">📅</span> Calendário</div>
@@ -375,18 +395,6 @@ tr:hover td{background:#FAFBFD;}
 
     <!-- PRODUTOS -->
     <div class="screen" id="screen-produtos">
-      <div class="form-section">
-        <div class="form-section-title">Cadastro de Produto</div>
-        <div class="form-grid">
-          <div class="form-group"><label>Nome do Produto / Serviço *</label><input type="text" id="prod-nome" placeholder="Ex: Chapa de Aço Galvanizada"></div>
-          <div class="form-group"><label>Tipo *</label><select id="prod-tipo"><option value="Produto">📦 Produto</option><option value="Serviço">🛠 Serviço</option></select></div>
-          <div class="form-group"><label>Código</label><input type="text" id="prod-codigo" placeholder="Ex: PROD-001"></div>
-          <div class="form-group"><label>Unidade</label><select id="prod-unidade"><option>UN</option><option>KG</option><option>M²</option><option>M</option><option>CX</option><option>PC</option><option>HR</option><option>SV</option></select></div>
-          <div class="form-group"><label>Preço Unitário (R$)</label><input type="number" id="prod-preco" placeholder="0,00"></div>
-        </div>
-        <div class="form-group" style="margin-top:12px;"><label>Descrição</label><textarea id="prod-desc" placeholder="Descrição do produto ou serviço..."></textarea></div>
-        <div class="form-actions"><button class="btn btn-secondary" onclick="clearForm('prod')">Limpar</button><button class="btn btn-primary" onclick="salvarProduto()">💾 Salvar Produto</button></div>
-      </div>
       <div class="table-wrap">
         <div class="table-header"><h3>Lista de Produtos</h3><input type="text" placeholder="🔍 Buscar..." style="border:1.5px solid var(--cinza-border);border-radius:7px;padding:6px 10px;font-size:13px;width:200px;" oninput="renderProdutos(this.value)"></div>
         <div class="table-scroll"><table><thead><tr><th>Código</th><th>Nome</th><th>Tipo</th><th>Unidade</th><th>Preço</th><th>Ações</th></tr></thead><tbody id="tbl-produtos"></tbody></table></div>
@@ -395,18 +403,6 @@ tr:hover td{background:#FAFBFD;}
 
     <!-- SUBPRODUTOS -->
     <div class="screen" id="screen-subprodutos">
-      <div class="form-section">
-        <div class="form-section-title">Cadastro de Subproduto / Subserviço</div>
-        <div class="form-grid">
-          <div class="form-group"><label>Produto / Serviço Pai *</label><select id="sub-produto-pai"><option value="">Selecione...</option></select></div>
-          <div class="form-group"><label>Nome do Subproduto / Subserviço *</label><input type="text" id="sub-nome" placeholder="Ex: Parafuso M8 / Mão de obra"></div>
-          <div class="form-group"><label>Tipo</label><select id="sub-tipo"><option value="Produto">📦 Produto</option><option value="Serviço">🛠 Serviço</option></select></div>
-          <div class="form-group"><label>Código</label><input type="text" id="sub-codigo" placeholder="Ex: SUB-001"></div>
-          <div class="form-group"><label>Unidade</label><select id="sub-unidade"><option>UN</option><option>KG</option><option>M²</option><option>M</option><option>CX</option><option>PC</option><option>HR</option><option>SV</option></select></div>
-          <div class="form-group"><label>Preço Unitário (R$)</label><input type="number" id="sub-preco" placeholder="0,00"></div>
-        </div>
-        <div class="form-actions"><button class="btn btn-secondary" onclick="clearForm('sub')">Limpar</button><button class="btn btn-primary" onclick="salvarSubproduto()">💾 Salvar Subproduto</button></div>
-      </div>
       <div class="table-wrap">
         <div class="table-header"><h3>Lista de Subprodutos</h3></div>
         <div class="table-scroll"><table><thead><tr><th>Produto Pai</th><th>Código</th><th>Nome</th><th>Tipo</th><th>Unidade</th><th>Preço</th><th>Ações</th></tr></thead><tbody id="tbl-subprodutos"></tbody></table></div>
@@ -415,16 +411,6 @@ tr:hover td{background:#FAFBFD;}
 
     <!-- CLIENTES -->
     <div class="screen" id="screen-clientes">
-      <div class="form-section">
-        <div class="form-section-title">Cadastro de Cliente / Fornecedor</div>
-        <div class="form-grid">
-          <div class="form-group"><label>Nome / Razão Social *</label><input type="text" id="cli-nome" placeholder="Nome do cliente"></div>
-          <div class="form-group"><label>CNPJ / CPF</label><input type="text" id="cli-doc" placeholder="00.000.000/0000-00"></div>
-          <div class="form-group"><label>Telefone</label><input type="text" id="cli-tel" placeholder="(00) 00000-0000"></div>
-          <div class="form-group"><label>Endereço / Cidade</label><input type="text" id="cli-cidade" placeholder="Ex: Rua das Flores, 123 - Blumenau / SC"></div>
-        </div>
-        <div class="form-actions"><button class="btn btn-secondary" onclick="clearForm('cli')">Limpar</button><button class="btn btn-primary" onclick="salvarCliente()">💾 Salvar Cliente</button></div>
-      </div>
       <div class="table-wrap">
         <div class="table-header"><h3>Lista de Clientes</h3><input type="text" placeholder="🔍 Buscar..." style="border:1.5px solid var(--cinza-border);border-radius:7px;padding:6px 10px;font-size:13px;width:200px;" oninput="renderClientes(this.value)"></div>
         <div class="table-scroll"><table><thead><tr><th>Nome</th><th>CNPJ/CPF</th><th>Telefone</th><th>Endereço / Cidade</th><th>Ações</th></tr></thead><tbody id="tbl-clientes"></tbody></table></div>
@@ -433,14 +419,6 @@ tr:hover td{background:#FAFBFD;}
 
     <!-- MOTIVOS REPROVAÇÃO -->
     <div class="screen" id="screen-motivos">
-      <div class="form-section">
-        <div class="form-section-title">Cadastro de Motivos de Reprovação</div>
-        <div class="form-grid">
-          <div class="form-group"><label>Motivo *</label><input type="text" id="mot-nome" placeholder="Ex: Preço acima do mercado"></div>
-          <div class="form-group"><label>Categoria</label><select id="mot-cat"><option>Preço</option><option>Prazo</option><option>Qualidade</option><option>Concorrência</option><option>Orçamento interno</option><option>Outro</option></select></div>
-        </div>
-        <div class="form-actions"><button class="btn btn-primary" onclick="salvarMotivo()">💾 Salvar Motivo</button></div>
-      </div>
       <div class="table-wrap">
         <div class="table-header"><h3>Motivos Cadastrados</h3></div>
         <table><thead><tr><th>Motivo</th><th>Categoria</th><th>Ações</th></tr></thead><tbody id="tbl-motivos"></tbody></table>
@@ -458,20 +436,6 @@ tr:hover td{background:#FAFBFD;}
         <select id="orc-filter-ano" onchange="renderOrcamentos()"></select>
         <label>Status:</label>
         <select id="orc-filter-status" onchange="renderOrcamentos()"><option value="">Todos</option><option>Em andamento</option><option>Enviado ao cliente</option></select>
-      </div>
-      <div class="form-section">
-        <div class="form-section-title">Novo Orçamento</div>
-        <div class="form-grid">
-          <div class="form-group"><label>Cliente / Fornecedor *</label><select id="orc-cliente"></select></div>
-          <div class="form-group"><label>Produto *</label><select id="orc-produto"></select></div>
-          <div class="form-group"><label>Subproduto</label><select id="orc-subproduto"><option value="">Nenhum</option></select></div>
-          <div class="form-group"><label>Valor Total (R$) *</label><input type="number" id="orc-valor" placeholder="0,00"></div>
-          <div class="form-group"><label>Data de Entrada *</label><input type="date" id="orc-dt-entrada"></div>
-          <div class="form-group"><label>Data de Conclusão</label><input type="date" id="orc-dt-conclusao" placeholder="Se vazio, usa hoje"></div>
-          <div class="form-group"><label>Status *</label><select id="orc-status"><option>Em andamento</option><option>Enviado ao cliente</option></select></div>
-        </div>
-        <div class="form-group" style="margin-top:12px;"><label>Observações</label><textarea id="orc-obs" placeholder="Detalhes do orçamento..."></textarea></div>
-        <div class="form-actions"><button class="btn btn-secondary" onclick="clearOrc()">Limpar</button><button class="btn btn-primary" onclick="salvarOrcamento()">💾 Salvar Orçamento</button></div>
       </div>
       <div class="table-wrap">
         <div class="table-header"><h3>Orçamentos Lançados</h3></div>
@@ -492,6 +456,24 @@ tr:hover td{background:#FAFBFD;}
       <div class="table-wrap">
         <div class="table-header"><h3>⏳ Aguardando Retorno do Cliente</h3></div>
         <div class="table-scroll"><table><thead><tr><th>Código</th><th>Cliente</th><th>Produto</th><th>Valor</th><th>Enviado em</th><th>Status Follow-up</th><th>Ações</th></tr></thead><tbody id="tbl-aguardando"></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- LEMBRETES (tela de visualização de todos os avisos) -->
+    <div class="screen" id="screen-lembretes">
+      <div class="filters-bar">
+        <label>Cliente:</label>
+        <select id="lem-filter-cli" onchange="renderListaLembretes('lista-lembretes-tela')"><option value="">Todos</option></select>
+        <label>Produto:</label>
+        <select id="lem-filter-prod" onchange="renderListaLembretes('lista-lembretes-tela')"><option value="">Todos</option></select>
+        <label>Mês:</label>
+        <select id="lem-filter-mes" onchange="renderListaLembretes('lista-lembretes-tela')"><option value="">Todos</option><option>Jan</option><option>Fev</option><option>Mar</option><option>Abr</option><option>Mai</option><option>Jun</option><option>Jul</option><option>Ago</option><option>Set</option><option>Out</option><option>Nov</option><option>Dez</option></select>
+        <label>Ano:</label>
+        <select id="lem-filter-ano" onchange="renderListaLembretes('lista-lembretes-tela')"><option value="">Todos</option></select>
+      </div>
+      <div class="table-wrap">
+        <div class="table-header"><h3>🔔 Todos os Lembretes e Avisos</h3></div>
+        <div style="padding:16px;" id="lista-lembretes-tela"></div>
       </div>
     </div>
 
@@ -584,6 +566,29 @@ tr:hover td{background:#FAFBFD;}
     <div class="screen" id="screen-admin">
       <div style="padding:24px 28px;max-width:900px;">
 
+        <!-- Dados da Empresa (usados no PDF de orçamento) -->
+        <div class="form-section" style="margin-bottom:24px;">
+          <div class="form-section-title">🏢 Dados da Empresa (aparecem no PDF de orçamento)</div>
+          <div class="form-grid">
+            <div class="form-group"><label>Nome da Empresa *</label><input type="text" id="emp-nome" placeholder="Ex: Metalúrgica ABC Ltda"></div>
+            <div class="form-group"><label>CNPJ</label><input type="text" id="emp-cnpj" placeholder="00.000.000/0000-00"></div>
+            <div class="form-group"><label>Telefone</label><input type="text" id="emp-telefone" placeholder="(47) 00000-0000"></div>
+            <div class="form-group"><label>E-mail</label><input type="text" id="emp-email" placeholder="contato@empresa.com.br"></div>
+            <div class="form-group"><label>Endereço</label><input type="text" id="emp-endereco" placeholder="Rua, número - Bairro - Cidade/UF"></div>
+            <div class="form-group"><label>Chave PIX</label><input type="text" id="emp-pix" placeholder="CNPJ, e-mail, telefone ou chave aleatória"></div>
+          </div>
+          <div class="form-group" style="margin-top:12px;">
+            <label>Logo da Empresa</label>
+            <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+              <img id="emp-logo-preview" src="" style="display:none;height:56px;max-width:180px;object-fit:contain;border:1px solid var(--cinza-border);border-radius:8px;padding:4px;background:#fff;">
+              <input type="file" id="emp-logo-file" accept="image/*" onchange="carregarLogoEmpresa(this)">
+              <button type="button" class="btn btn-secondary btn-sm" onclick="removerLogoEmpresa()">Remover logo</button>
+            </div>
+          </div>
+          <div class="form-group" style="margin-top:12px;"><label>Observação no rodapé do PDF</label><textarea id="emp-obs" rows="2" placeholder="Ex: Orçamento válido por 15 dias."></textarea></div>
+          <div class="form-actions"><button class="btn btn-primary" onclick="salvarDadosEmpresa()">💾 Salvar Dados da Empresa</button></div>
+        </div>
+
         <!-- Usuários -->
         <div class="form-section" style="margin-bottom:24px;">
           <div class="form-section-title">👥 Usuários do Sistema</div>
@@ -637,6 +642,170 @@ tr:hover td{background:#FAFBFD;}
       </div>
     </div>
 
+  </div>
+</div>
+
+<!-- MODAL CADASTRO DE PRODUTO -->
+<div class="modal-overlay modal-overlay-top" id="modal-cad-produto">
+  <div class="modal" style="max-width:640px;">
+    <div class="modal-header"><h3 id="modal-cad-produto-titulo">📦 Cadastro de Produto</h3><button class="modal-close" onclick="closeModal('modal-cad-produto')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group"><label>Nome do Produto / Serviço *</label><input type="text" id="prod-nome" placeholder="Ex: Chapa de Aço Galvanizada"></div>
+        <div class="form-group"><label>Tipo *</label><select id="prod-tipo"><option value="Produto">📦 Produto</option><option value="Serviço">🛠 Serviço</option></select></div>
+        <div class="form-group"><label>Código</label><input type="text" id="prod-codigo" placeholder="Ex: PROD-001"></div>
+        <div class="form-group"><label>Unidade</label><select id="prod-unidade"><option>UN</option><option>KG</option><option>M²</option><option>M</option><option>CX</option><option>PC</option><option>HR</option><option>SV</option></select></div>
+        <div class="form-group"><label>Preço Unitário (R$)</label><input type="number" id="prod-preco" placeholder="0,00"></div>
+      </div>
+      <div class="form-group" style="margin-top:12px;"><label>Descrição</label><textarea id="prod-desc" placeholder="Descrição do produto ou serviço..."></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-cad-produto')">Cancelar</button>
+      <button class="btn btn-primary" id="btn-salvar-produto" onclick="salvarProduto()">💾 Salvar Produto</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CADASTRO DE SUBPRODUTO -->
+<div class="modal-overlay modal-overlay-top" id="modal-cad-subproduto">
+  <div class="modal" style="max-width:640px;">
+    <div class="modal-header"><h3 id="modal-cad-subproduto-titulo">🔧 Cadastro de Subproduto / Subserviço</h3><button class="modal-close" onclick="closeModal('modal-cad-subproduto')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group"><label>Produto / Serviço Pai *</label><select id="sub-produto-pai"><option value="">Selecione...</option></select></div>
+        <div class="form-group"><label>Nome do Subproduto / Subserviço *</label><input type="text" id="sub-nome" placeholder="Ex: Parafuso M8 / Mão de obra"></div>
+        <div class="form-group"><label>Tipo</label><select id="sub-tipo"><option value="Produto">📦 Produto</option><option value="Serviço">🛠 Serviço</option></select></div>
+        <div class="form-group"><label>Código</label><input type="text" id="sub-codigo" placeholder="Ex: SUB-001"></div>
+        <div class="form-group"><label>Unidade</label><select id="sub-unidade"><option>UN</option><option>KG</option><option>M²</option><option>M</option><option>CX</option><option>PC</option><option>HR</option><option>SV</option></select></div>
+        <div class="form-group"><label>Preço Unitário (R$)</label><input type="number" id="sub-preco" placeholder="0,00"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-cad-subproduto')">Cancelar</button>
+      <button class="btn btn-primary" id="btn-salvar-subproduto" onclick="salvarSubproduto()">💾 Salvar Subproduto</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CADASTRO DE CLIENTE -->
+<div class="modal-overlay modal-overlay-top" id="modal-cad-cliente">
+  <div class="modal" style="max-width:600px;">
+    <div class="modal-header"><h3 id="modal-cad-cliente-titulo">👥 Cadastro de Cliente / Fornecedor</h3><button class="modal-close" onclick="closeModal('modal-cad-cliente')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group"><label>Nome / Razão Social *</label><input type="text" id="cli-nome" placeholder="Nome do cliente"></div>
+        <div class="form-group"><label>CNPJ / CPF</label><input type="text" id="cli-doc" placeholder="00.000.000/0000-00"></div>
+        <div class="form-group"><label>Telefone</label><input type="text" id="cli-tel" placeholder="(00) 00000-0000"></div>
+        <div class="form-group"><label>Endereço / Cidade</label><input type="text" id="cli-cidade" placeholder="Ex: Rua das Flores, 123 - Blumenau / SC"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-cad-cliente')">Cancelar</button>
+      <button class="btn btn-primary" id="btn-salvar-cliente" onclick="salvarCliente()">💾 Salvar Cliente</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CADASTRO DE MOTIVO -->
+<div class="modal-overlay modal-overlay-top" id="modal-cad-motivo">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal-header"><h3 id="modal-cad-motivo-titulo">📋 Cadastro de Motivo de Reprovação</h3><button class="modal-close" onclick="closeModal('modal-cad-motivo')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group"><label>Motivo *</label><input type="text" id="mot-nome" placeholder="Ex: Preço acima do mercado"></div>
+        <div class="form-group"><label>Categoria</label><select id="mot-cat"><option>Preço</option><option>Prazo</option><option>Qualidade</option><option>Concorrência</option><option>Orçamento interno</option><option>Outro</option></select></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-cad-motivo')">Cancelar</button>
+      <button class="btn btn-primary" id="btn-salvar-motivo" onclick="salvarMotivo()">💾 Salvar Motivo</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL NOVO ORÇAMENTO (com itens) -->
+<div class="modal-overlay" id="modal-novo-orc">
+  <div class="modal" style="max-width:840px;">
+    <div class="modal-header"><h3 id="modal-novo-orc-titulo">📝 Novo Orçamento</h3><button class="modal-close" onclick="closeModal('modal-novo-orc')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group"><label>Cliente / Fornecedor *</label>
+          <div class="combo">
+            <input type="text" class="combo-search" id="orc-cliente-busca" placeholder="Digite para buscar..." autocomplete="off" oninput="comboClienteInput(this.value)" onfocus="comboClienteFocus()">
+            <input type="hidden" id="orc-cliente">
+            <div class="combo-dropdown" id="orc-cliente-dropdown"></div>
+          </div>
+        </div>
+        <div class="form-group"><label>Produto/Serviço *</label>
+          <div class="combo">
+            <input type="text" class="combo-search" id="orc-produto-busca" placeholder="Digite para buscar..." autocomplete="off" oninput="comboProdutoInput(this.value)" onfocus="comboProdutoFocus()">
+            <input type="hidden" id="orc-produto">
+            <div class="combo-dropdown" id="orc-produto-dropdown"></div>
+          </div>
+        </div>
+        <div class="form-group"><label>Subproduto</label><select id="orc-subproduto"><option value="">Nenhum</option></select></div>
+        <div class="form-group"><label>Valor Total (R$) *</label><input type="number" id="orc-valor" placeholder="0,00"></div>
+        <div class="form-group"><label>Data de Entrada *</label><input type="date" id="orc-dt-entrada"></div>
+        <div class="form-group"><label>Data de Conclusão</label><input type="date" id="orc-dt-conclusao" placeholder="Se vazio, usa hoje"></div>
+        <div class="form-group"><label>Status *</label><select id="orc-status"><option>Em andamento</option><option>Enviado ao cliente</option></select></div>
+        <div class="form-group"><label>Condição de Pagamento</label><input type="text" id="orc-pagamento" placeholder="Ex: À vista, 50% entrada + 50% na entrega, 30/60 dias..."></div>
+      </div>
+      <div class="form-group" style="margin-top:12px;"><label>Observações</label><textarea id="orc-obs" placeholder="Detalhes do orçamento..."></textarea></div>
+
+      <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--cinza-border);">
+        <div class="form-section-title" style="border:none;padding-bottom:0;margin-bottom:4px;">Itens do Orçamento</div>
+        <p style="font-size:12px;color:var(--cinza-texto);margin-bottom:10px;">Lista apenas para conferência dos materiais/serviços usados — não altera o Valor Total acima.</p>
+        <div class="table-scroll">
+          <table>
+            <thead><tr>
+              <th style="width:36px;">#</th>
+              <th style="min-width:200px;">Produto/Serviço</th>
+              <th style="width:80px;">Unidade</th>
+              <th style="width:90px;">Quantidade</th>
+              <th style="width:110px;">Preço Unit. (R$)</th>
+              <th style="width:120px;">Preço Total (R$)</th>
+              <th style="width:60px;text-align:center;">Usado</th>
+              <th style="width:40px;"></th>
+            </tr></thead>
+            <tbody id="tbl-itens-orc"></tbody>
+          </table>
+        </div>
+        <div class="form-actions" style="margin-top:12px;">
+          <button class="btn btn-secondary btn-sm" onclick="adicionarItemOrc()">+ Adicionar Item</button>
+        </div>
+      </div>
+
+      <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--cinza-border);">
+        <div class="form-section-title" style="border:none;padding-bottom:0;margin-bottom:4px;">Fotos de Referência</div>
+        <p style="font-size:12px;color:var(--cinza-texto);margin-bottom:10px;">Apenas para conferência interna — essas fotos <strong>não aparecem</strong> no PDF do orçamento.</p>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;max-width:520px;">
+          <div class="foto-slot">
+            <div class="foto-preview" id="foto-preview-1" onclick="document.getElementById('foto-input-1').click()"><span class="foto-placeholder">📷 Foto 1</span></div>
+            <input type="file" accept="image/*" id="foto-input-1" style="display:none;" onchange="carregarFotoOrc(1, this)">
+            <button type="button" class="btn btn-secondary btn-sm" style="width:100%;margin-top:6px;" onclick="removerFotoOrc(1)">Remover</button>
+          </div>
+          <div class="foto-slot">
+            <div class="foto-preview" id="foto-preview-2" onclick="document.getElementById('foto-input-2').click()"><span class="foto-placeholder">📷 Foto 2</span></div>
+            <input type="file" accept="image/*" id="foto-input-2" style="display:none;" onchange="carregarFotoOrc(2, this)">
+            <button type="button" class="btn btn-secondary btn-sm" style="width:100%;margin-top:6px;" onclick="removerFotoOrc(2)">Remover</button>
+          </div>
+          <div class="foto-slot">
+            <div class="foto-preview" id="foto-preview-3" onclick="document.getElementById('foto-input-3').click()"><span class="foto-placeholder">📷 Foto 3</span></div>
+            <input type="file" accept="image/*" id="foto-input-3" style="display:none;" onchange="carregarFotoOrc(3, this)">
+            <button type="button" class="btn btn-secondary btn-sm" style="width:100%;margin-top:6px;" onclick="removerFotoOrc(3)">Remover</button>
+          </div>
+          <div class="foto-slot">
+            <div class="foto-preview" id="foto-preview-4" onclick="document.getElementById('foto-input-4').click()"><span class="foto-placeholder">📷 Foto 4</span></div>
+            <input type="file" accept="image/*" id="foto-input-4" style="display:none;" onchange="carregarFotoOrc(4, this)">
+            <button type="button" class="btn btn-secondary btn-sm" style="width:100%;margin-top:6px;" onclick="removerFotoOrc(4)">Remover</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-novo-orc')">Cancelar</button>
+      <button class="btn btn-primary" id="btn-salvar-orc" onclick="salvarOrcamento()">💾 Salvar Orçamento</button>
+    </div>
   </div>
 </div>
 
@@ -702,9 +871,15 @@ tr:hover td{background:#FAFBFD;}
 // ===== DATA =====
 let db = {
   produtos: [], subprodutos: [], clientes: [], motivos: [],
-  orcamentos: []
+  orcamentos: [], empresa: { nome:'', cnpj:'', telefone:'', email:'', endereco:'', pix:'', obs:'', logo:'' }
 };
 let orcCounter = 1;
+let itensOrcAtual = []; // itens da lista de "Novo Orçamento" em construção
+let fotosOrcAtual = ['', '', '', '']; // fotos de referência (somente conferência interna) do orçamento em construção
+let itemPendenteNovoProduto = null; // item da lista que disparou o cadastro rápido de produto
+let pendenteNovoProdutoParaSelect = null; // select do formulário (ex: orc-produto) que disparou o cadastro rápido de produto
+let itemPendenteNovoProdutoVerItens = null; // item do modal "Ver/Editar Itens" que disparou o cadastro rápido de produto
+let pendenteNovoClienteParaSelect = null; // select do formulário (ex: orc-cliente) que disparou o cadastro rápido de cliente
 
 async function loadDB() {
   showLoading(true);
@@ -713,6 +888,7 @@ async function loadDB() {
     if (rows && rows.length > 0) {
       db = rows[0].payload;
       orcCounter = db.orcamentos && db.orcamentos.length > 0 ? Math.max(...db.orcamentos.map(o => o._num || 1)) + 1 : 1;
+      if (!db.empresa) db.empresa = { nome:'', cnpj:'', telefone:'', email:'', endereco:'', pix:'', obs:'', logo:'' }; // compatibilidade com bases já existentes
     } else {
       // Primeiro acesso: seed motivos padrão e salva
       db.motivos = [
@@ -721,6 +897,7 @@ async function loadDB() {
         {id: uid(), nome: 'Escolheu concorrente', cat: 'Concorrência'},
         {id: uid(), nome: 'Projeto cancelado', cat: 'Outro'},
       ];
+      db.empresa = { nome:'', cnpj:'', telefone:'', email:'', endereco:'', pix:'', obs:'', logo:'' };
       await supaPost('dados', {id: 'principal', payload: db});
     }
   } catch(e) {
@@ -860,13 +1037,48 @@ document.getElementById('login-pass').addEventListener('keydown', e => { if(e.ke
 const screenTitles = {
   dashboard:'Dashboard', produtos:'Cadastro de Produtos', subprodutos:'Cadastro de Subprodutos',
   clientes:'Cadastro de Clientes', motivos:'Motivos de Reprovação', orcamentos:'Lançamento de Orçamento',
-  aguardando:'Aguardando Cliente', instalacao:'Instalação', concluidos:'Projetos Concluídos',
+  aguardando:'Aguardando Cliente', lembretes:'Lembretes e Avisos', instalacao:'Instalação', concluidos:'Projetos Concluídos',
   cobranca:'Cobrança', reprovados:'Orçamentos Reprovados', calendario:'Calendário de Instalações', admin:'Administração do Sistema'
 };
 const screenActions = {
-  produtos: '<button class="btn btn-primary btn-sm" onclick="clearForm(\'prod\')">+ Novo Produto</button>',
-  clientes: '<button class="btn btn-primary btn-sm" onclick="clearForm(\'cli\')">+ Novo Cliente</button>',
+  produtos: '<button class="btn btn-primary btn-sm" onclick="novoRegistro(\'prod\')">+ Novo Produto</button>',
+  subprodutos: '<button class="btn btn-primary btn-sm" onclick="novoRegistro(\'sub\')">+ Novo Subproduto</button>',
+  clientes: '<button class="btn btn-primary btn-sm" onclick="novoRegistro(\'cli\')">+ Novo Cliente</button>',
+  motivos: '<button class="btn btn-primary btn-sm" onclick="novoRegistro(\'mot\')">+ Novo Motivo</button>',
+  orcamentos: '<button class="btn btn-primary btn-sm" onclick="novoRegistro(\'orc\')">+ Novo Orçamento</button>',
+  lembretes: '<button class="btn btn-primary btn-sm" onclick="abrirNovoLembrete()">+ Novo Lembrete</button>',
 };
+
+// Botão "+ Novo X" do topbar: limpa o formulário, cancela edição em andamento e ABRE o modal de lançamento
+const MODAL_CADASTRO = { prod:'modal-cad-produto', sub:'modal-cad-subproduto', cli:'modal-cad-cliente', mot:'modal-cad-motivo', orc:'modal-novo-orc' };
+function resetBotaoSalvar(tipo) {
+  const cfg = {
+    prod: { id:'btn-salvar-produto', txt:'💾 Salvar Produto', fn:salvarProduto },
+    sub:  { id:'btn-salvar-subproduto', txt:'💾 Salvar Subproduto', fn:salvarSubproduto },
+    cli:  { id:'btn-salvar-cliente', txt:'💾 Salvar Cliente', fn:salvarCliente },
+    mot:  { id:'btn-salvar-motivo', txt:'💾 Salvar Motivo', fn:salvarMotivo },
+  };
+  const c = cfg[tipo];
+  if (!c) return;
+  const btn = document.getElementById(c.id);
+  if (btn) { btn.textContent = c.txt; btn.onclick = c.fn; }
+}
+function novoRegistro(tipo) {
+  const focusMap = { prod:'prod-nome', sub:'sub-nome', cli:'cli-nome', mot:'mot-nome', orc:'orc-cliente' };
+  if (tipo === 'orc') {
+    clearOrc();
+    populateOrcSelects();
+  } else {
+    clearForm(tipo);
+    if (tipo === 'mot') document.getElementById('mot-nome').value = '';
+    if (tipo === 'sub') populateSubPai();
+    if (tipo === 'prod') pendenteNovoProdutoParaSelect = null;
+    if (tipo === 'cli') pendenteNovoClienteParaSelect = null;
+    resetBotaoSalvar(tipo);
+  }
+  document.getElementById(MODAL_CADASTRO[tipo]).classList.add('open');
+  setTimeout(() => { const el = document.getElementById(focusMap[tipo]); if (el) el.focus(); }, 150);
+}
 
 function nav(screen) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -879,8 +1091,8 @@ function nav(screen) {
   document.getElementById('topbar-actions').innerHTML = screenActions[screen] || '';
   const renders = {
     dashboard: renderDashboard, produtos: renderProdutos, subprodutos: () => { populateSubPai(); renderSubprodutos(); },
-    clientes: renderClientes, motivos: renderMotivos, orcamentos: () => { populateOrcSelects(); renderOrcamentos(); },
-    aguardando: renderAguardando, instalacao: renderInstalacao, concluidos: renderConcluidos,
+    clientes: renderClientes, motivos: renderMotivos, orcamentos: () => { populateOrcSelects(); renderOrcamentos(); renderItensOrc(); renderFotosOrc(); },
+    aguardando: renderAguardando, lembretes: () => { populateSelects(); renderListaLembretes('lista-lembretes-tela'); }, instalacao: renderInstalacao, concluidos: renderConcluidos,
     cobranca: renderCobranca, reprovados: renderReprovados, calendario: renderCalendario, admin: renderAdmin
   };
   if (renders[screen]) renders[screen]();
@@ -890,26 +1102,106 @@ function nav(screen) {
 function populateSelects() {
   // ano selects
   const anos = [2023,2024,2025,2026,2027];
-  ['dash-filter-ano','orc-filter-ano','ag-filter-ano','inst-filter-ano','con-filter-ano','cobr-filter-ano','rep-filter-ano'].forEach(id => {
+  ['dash-filter-ano','orc-filter-ano','ag-filter-ano','inst-filter-ano','con-filter-ano','cobr-filter-ano','rep-filter-ano','lem-filter-ano'].forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
     el.innerHTML = '<option value="">Todos</option>' + anos.map(a => `<option>${a}</option>`).join('');
   });
-  ['dash-filter-cliente','orc-filter-cli','ag-filter-cli','inst-filter-cli','con-filter-cli','cobr-filter-cli','rep-filter-cli'].forEach(id => {
+  ['dash-filter-cliente','orc-filter-cli','ag-filter-cli','inst-filter-cli','con-filter-cli','cobr-filter-cli','rep-filter-cli','lem-filter-cli'].forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
     el.innerHTML = '<option value="">Todos</option>' + db.clientes.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
   });
+  const elProdLem = document.getElementById('lem-filter-prod');
+  if (elProdLem) elProdLem.innerHTML = '<option value="">Todos</option>' + db.produtos.map(p => `<option value="${p.id}">${p.nome}</option>`).join('');
 }
 function populateSubPai() {
   document.getElementById('sub-produto-pai').innerHTML = '<option value="">Selecione...</option>' + db.produtos.map(p => `<option value="${p.id}">[${p.tipo||'Produto'}] ${p.nome}</option>`).join('');
 }
+// ===== COMBOBOX GENÉRICO COM BUSCA (usado em Cliente, Produto e Itens) =====
+function comboPosicionar(inputEl, dropdownEl) {
+  const r = inputEl.getBoundingClientRect();
+  dropdownEl.style.left = r.left + 'px';
+  dropdownEl.style.top = (r.bottom + 4) + 'px';
+  dropdownEl.style.width = r.width + 'px';
+}
+function comboShow(inputEl, dropdownEl, items, query, novoLabel, onPick, onNovo) {
+  const q = (query||'').trim().toLowerCase();
+  const filtered = q ? items.filter(it => it.label.toLowerCase().includes(q)) : items;
+  let html = filtered.length ? filtered.map(it => `<div class="combo-item" data-id="${it.id}">${it.label}</div>`).join('') : '<div class="combo-empty">Nenhum resultado encontrado</div>';
+  if (novoLabel) html += `<div class="combo-item combo-item-novo" data-novo="1">${novoLabel}</div>`;
+  dropdownEl.innerHTML = html;
+  comboPosicionar(inputEl, dropdownEl);
+  dropdownEl.style.display = 'block';
+  dropdownEl.querySelectorAll('.combo-item[data-id]').forEach(el => {
+    el.onmousedown = (e) => { e.preventDefault(); dropdownEl.style.display = 'none'; onPick(el.dataset.id); };
+  });
+  const novoEl = dropdownEl.querySelector('.combo-item-novo');
+  if (novoEl) novoEl.onmousedown = (e) => { e.preventDefault(); dropdownEl.style.display = 'none'; onNovo(); };
+}
+// Fecha o dropdown ao clicar fora, ou ao rolar a página/modal (a posição é "fixed" e não acompanha o scroll)
+document.addEventListener('click', (e) => {
+  document.querySelectorAll('.combo-dropdown').forEach(dd => {
+    if (dd.style.display !== 'none' && dd.parentElement && !dd.parentElement.contains(e.target)) dd.style.display = 'none';
+  });
+});
+document.addEventListener('scroll', () => {
+  document.querySelectorAll('.combo-dropdown').forEach(dd => dd.style.display = 'none');
+}, true);
+window.addEventListener('resize', () => {
+  document.querySelectorAll('.combo-dropdown').forEach(dd => dd.style.display = 'none');
+});
+
+// ---- Combo: Cliente / Fornecedor ----
+function comboClienteItens() { return db.clientes.map(c => ({ id: c.id, label: c.nome })); }
+function comboClienteSelecionar(id) {
+  const c = db.clientes.find(x => x.id === id);
+  document.getElementById('orc-cliente').value = id;
+  document.getElementById('orc-cliente-busca').value = c ? c.nome : '';
+}
+function comboClienteInput(val) {
+  document.getElementById('orc-cliente').value = '';
+  comboShow(document.getElementById('orc-cliente-busca'), document.getElementById('orc-cliente-dropdown'), comboClienteItens(), val, '+ Cadastrar novo cliente...', comboClienteSelecionar, () => abrirCadastroClienteRapido('orc-cliente'));
+}
+function comboClienteFocus() {
+  comboShow(document.getElementById('orc-cliente-busca'), document.getElementById('orc-cliente-dropdown'), comboClienteItens(), document.getElementById('orc-cliente-busca').value, '+ Cadastrar novo cliente...', comboClienteSelecionar, () => abrirCadastroClienteRapido('orc-cliente'));
+}
+function refreshOrcClienteSelect(selecionarId) {
+  if (selecionarId) { comboClienteSelecionar(selecionarId); }
+  else { document.getElementById('orc-cliente').value = ''; document.getElementById('orc-cliente-busca').value = ''; }
+}
+
+// ---- Combo: Produto/Serviço ----
+function comboProdutoItens() { return db.produtos.map(p => ({ id: p.id, label: `[${p.tipo||'Produto'}] ${p.nome}` })); }
+function comboProdutoSelecionar(id) {
+  const p = db.produtos.find(x => x.id === id);
+  document.getElementById('orc-produto').value = id;
+  document.getElementById('orc-produto-busca').value = p ? `[${p.tipo||'Produto'}] ${p.nome}` : '';
+  const subs = db.subprodutos.filter(s => s.produtoPai === id);
+  document.getElementById('orc-subproduto').innerHTML = '<option value="">Nenhum</option>' + subs.map(s => `<option value="${s.id}">${s.nome}</option>`).join('');
+  if (p) document.getElementById('orc-valor').value = p.preco || 0; // traz o preço cadastrado no produto; o campo continua editável
+}
+function comboProdutoInput(val) {
+  document.getElementById('orc-produto').value = '';
+  comboShow(document.getElementById('orc-produto-busca'), document.getElementById('orc-produto-dropdown'), comboProdutoItens(), val, '+ Cadastrar novo produto...', comboProdutoSelecionar, () => abrirCadastroProdutoRapido('orc-produto'));
+}
+function comboProdutoFocus() {
+  comboShow(document.getElementById('orc-produto-busca'), document.getElementById('orc-produto-dropdown'), comboProdutoItens(), document.getElementById('orc-produto-busca').value, '+ Cadastrar novo produto...', comboProdutoSelecionar, () => abrirCadastroProdutoRapido('orc-produto'));
+}
+function refreshOrcProdutoSelect(selecionarId) {
+  if (selecionarId) { comboProdutoSelecionar(selecionarId); }
+  else {
+    document.getElementById('orc-produto').value = ''; document.getElementById('orc-produto-busca').value = '';
+    document.getElementById('orc-subproduto').innerHTML = '<option value="">Nenhum</option>';
+  }
+}
+
 function populateOrcSelects() {
-  document.getElementById('orc-cliente').innerHTML = '<option value="">Selecione...</option>' + db.clientes.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
-  document.getElementById('orc-produto').innerHTML = '<option value="">Selecione...</option>' + db.produtos.map(p => `<option value="${p.id}">[${p.tipo||'Produto'}] ${p.nome}</option>`).join('');
-  document.getElementById('orc-produto').onchange = function() {
-    const subs = db.subprodutos.filter(s => s.produtoPai === this.value);
-    document.getElementById('orc-subproduto').innerHTML = '<option value="">Nenhum</option>' + subs.map(s => `<option value="${s.id}">${s.nome}</option>`).join('');
+  refreshOrcClienteSelect();
+  refreshOrcProdutoSelect();
+  document.getElementById('orc-subproduto').onchange = function() {
+    const s = db.subprodutos.find(x => x.id === this.value);
+    if (s) document.getElementById('orc-valor').value = s.preco || 0; // se houver subproduto com preço próprio, usa o dele
   };
   document.getElementById('orc-dt-entrada').value = new Date().toISOString().slice(0,10);
 }
@@ -925,7 +1217,7 @@ async function salvarProduto() {
   const nome = document.getElementById('prod-nome').value.trim();
   if (!nome) return toast('Informe o nome do produto', 'error');
   db.produtos.push({ id: uid(), nome, tipo: document.getElementById('prod-tipo').value, codigo: document.getElementById('prod-codigo').value, unidade: document.getElementById('prod-unidade').value, preco: parseFloat(document.getElementById('prod-preco').value) || 0, desc: document.getElementById('prod-desc').value });
-  await save(); clearForm('prod'); renderProdutos(); populateSelects(); toast('Produto/Serviço salvo!', 'success');
+  await save(); clearForm('prod'); renderProdutos(); populateSelects(); closeModal('modal-cad-produto'); toast('Produto/Serviço salvo!', 'success');
 }
 function clearForm(p) {
   const ids = {prod:['prod-nome','prod-codigo','prod-preco','prod-desc'], cli:['cli-nome','cli-doc','cli-tel','cli-cidade'], sub:['sub-nome','sub-codigo','sub-preco']};
@@ -947,7 +1239,7 @@ async function salvarSubproduto() {
   if (!pai) return toast('Selecione o produto pai', 'error');
   if (!nome) return toast('Informe o nome do subproduto', 'error');
   db.subprodutos.push({ id: uid(), produtoPai: pai, nome, tipo: document.getElementById('sub-tipo').value, codigo: document.getElementById('sub-codigo').value, unidade: document.getElementById('sub-unidade').value, preco: parseFloat(document.getElementById('sub-preco').value) || 0 });
-  await save(); clearForm('sub'); renderSubprodutos(); toast('Subproduto salvo!', 'success');
+  await save(); clearForm('sub'); renderSubprodutos(); closeModal('modal-cad-subproduto'); toast('Subproduto salvo!', 'success');
 }
 function renderSubprodutos() {
   const tipoBadge = t => t === 'Serviço' ? '<span class="badge badge-purple">🛠 Serviço</span>' : '<span class="badge badge-blue">📦 Produto</span>';
@@ -963,8 +1255,22 @@ async function delSub(id) { if(confirm('Excluir?')) { db.subprodutos = db.subpro
 async function salvarCliente() {
   const nome = document.getElementById('cli-nome').value.trim();
   if (!nome) return toast('Informe o nome do cliente', 'error');
-  db.clientes.push({ id: uid(), nome, doc: document.getElementById('cli-doc').value, tel: document.getElementById('cli-tel').value, cidade: document.getElementById('cli-cidade').value });
-  await save(); clearForm('cli'); renderClientes(); populateSelects(); toast('Cliente salvo!', 'success');
+  const novo = { id: uid(), nome, doc: document.getElementById('cli-doc').value, tel: document.getElementById('cli-tel').value, cidade: document.getElementById('cli-cidade').value };
+  db.clientes.push(novo);
+  await save(); clearForm('cli'); renderClientes(); populateSelects();
+  if (pendenteNovoClienteParaSelect === 'orc-cliente') {
+    refreshOrcClienteSelect(novo.id);
+  }
+  pendenteNovoClienteParaSelect = null;
+  closeModal('modal-cad-cliente'); toast('Cliente salvo!', 'success');
+}
+// Abre o cadastro de cliente a partir de outra tela (ex: Novo Orçamento), selecionando o resultado de volta no select de origem
+function abrirCadastroClienteRapido(selectId) {
+  pendenteNovoClienteParaSelect = selectId;
+  clearForm('cli');
+  resetBotaoSalvar('cli');
+  document.getElementById('modal-cad-cliente').classList.add('open');
+  setTimeout(() => document.getElementById('cli-nome').focus(), 100);
 }
 function renderClientes(q='') {
   const list = db.clientes.filter(c => !q || c.nome.toLowerCase().includes(q.toLowerCase()));
@@ -979,7 +1285,7 @@ async function salvarMotivo() {
   const nome = document.getElementById('mot-nome').value.trim();
   if (!nome) return toast('Informe o motivo', 'error');
   db.motivos.push({ id: uid(), nome, cat: document.getElementById('mot-cat').value });
-  await save(); document.getElementById('mot-nome').value = ''; renderMotivos(); toast('Motivo salvo!', 'success');
+  await save(); document.getElementById('mot-nome').value = ''; renderMotivos(); closeModal('modal-cad-motivo'); toast('Motivo salvo!', 'success');
 }
 function renderMotivos() {
   document.getElementById('tbl-motivos').innerHTML = db.motivos.map(m => `
@@ -989,11 +1295,12 @@ function renderMotivos() {
 async function delMotivo(id) { if(confirm('Excluir?')) { db.motivos = db.motivos.filter(m => m.id !== id); await save(); renderMotivos(); } }
 
 
-// ===== EDITAR CADASTROS (reutiliza formulários) =====
+// ===== EDITAR CADASTROS (abre o modal correspondente já preenchido) =====
 
 function editarProduto(id) {
   const p = db.produtos.find(x => x.id === id);
   if (!p) return;
+  pendenteNovoProdutoParaSelect = null;
   document.getElementById('prod-nome').value = p.nome || '';
   document.getElementById('prod-codigo').value = p.codigo || '';
   document.getElementById('prod-preco').value = p.preco || '';
@@ -1001,11 +1308,10 @@ function editarProduto(id) {
   if (document.getElementById('prod-tipo')) document.getElementById('prod-tipo').value = p.tipo || 'Produto';
   if (document.getElementById('prod-unidade')) document.getElementById('prod-unidade').value = p.unidade || 'UN';
   // Troca botão salvar para atualizar
-  const btn = document.querySelector('#screen-produtos .btn-primary');
+  const btn = document.getElementById('btn-salvar-produto');
   if (btn) { btn.textContent = '💾 Atualizar Produto'; btn.onclick = () => atualizarProduto(id); }
-  window.scrollTo(0, 0);
-  document.getElementById('prod-nome').focus();
-  toast('Editando produto — modifique e clique em Atualizar', '');
+  document.getElementById('modal-cad-produto').classList.add('open');
+  setTimeout(() => document.getElementById('prod-nome').focus(), 100);
 }
 async function atualizarProduto(id) {
   const p = db.produtos.find(x => x.id === id);
@@ -1017,24 +1323,25 @@ async function atualizarProduto(id) {
   if (document.getElementById('prod-tipo')) p.tipo = document.getElementById('prod-tipo').value;
   if (document.getElementById('prod-unidade')) p.unidade = document.getElementById('prod-unidade').value;
   await save(); clearForm('prod'); renderProdutos(); populateSelects();
-  const btn = document.querySelector('#screen-produtos .btn-primary');
+  const btn = document.getElementById('btn-salvar-produto');
   if (btn) { btn.textContent = '💾 Salvar Produto'; btn.onclick = salvarProduto; }
+  closeModal('modal-cad-produto');
   toast('Produto atualizado!', 'success');
 }
 
 function editarSub(id) {
   const s = db.subprodutos.find(x => x.id === id);
   if (!s) return;
+  populateSubPai();
   if (document.getElementById('sub-produto-pai')) document.getElementById('sub-produto-pai').value = s.produtoPai || '';
   document.getElementById('sub-nome').value = s.nome || '';
   document.getElementById('sub-codigo').value = s.codigo || '';
   document.getElementById('sub-preco').value = s.preco || '';
   if (document.getElementById('sub-tipo')) document.getElementById('sub-tipo').value = s.tipo || 'Produto';
   if (document.getElementById('sub-unidade')) document.getElementById('sub-unidade').value = s.unidade || 'UN';
-  const btn = document.querySelector('#screen-subprodutos .btn-primary');
+  const btn = document.getElementById('btn-salvar-subproduto');
   if (btn) { btn.textContent = '💾 Atualizar Subproduto'; btn.onclick = () => atualizarSub(id); }
-  window.scrollTo(0, 0);
-  toast('Editando subproduto — modifique e clique em Atualizar', '');
+  document.getElementById('modal-cad-subproduto').classList.add('open');
 }
 async function atualizarSub(id) {
   const s = db.subprodutos.find(x => x.id === id);
@@ -1046,23 +1353,24 @@ async function atualizarSub(id) {
   if (document.getElementById('sub-tipo')) s.tipo = document.getElementById('sub-tipo').value;
   if (document.getElementById('sub-unidade')) s.unidade = document.getElementById('sub-unidade').value;
   await save(); clearForm('sub'); renderSubprodutos();
-  const btn = document.querySelector('#screen-subprodutos .btn-primary');
+  const btn = document.getElementById('btn-salvar-subproduto');
   if (btn) { btn.textContent = '💾 Salvar Subproduto'; btn.onclick = salvarSubproduto; }
+  closeModal('modal-cad-subproduto');
   toast('Subproduto atualizado!', 'success');
 }
 
 function editarCliente(id) {
   const c = db.clientes.find(x => x.id === id);
   if (!c) return;
+  pendenteNovoClienteParaSelect = null;
   document.getElementById('cli-nome').value = c.nome || '';
   document.getElementById('cli-doc').value = c.doc || '';
   document.getElementById('cli-tel').value = c.tel || '';
   document.getElementById('cli-cidade').value = c.cidade || '';
-  const btn = document.querySelector('#screen-clientes .btn-primary');
+  const btn = document.getElementById('btn-salvar-cliente');
   if (btn) { btn.textContent = '💾 Atualizar Cliente'; btn.onclick = () => atualizarCliente(id); }
-  window.scrollTo(0, 0);
-  document.getElementById('cli-nome').focus();
-  toast('Editando cliente — modifique e clique em Atualizar', '');
+  document.getElementById('modal-cad-cliente').classList.add('open');
+  setTimeout(() => document.getElementById('cli-nome').focus(), 100);
 }
 async function atualizarCliente(id) {
   const c = db.clientes.find(x => x.id === id);
@@ -1072,8 +1380,9 @@ async function atualizarCliente(id) {
   c.tel = document.getElementById('cli-tel').value;
   c.cidade = document.getElementById('cli-cidade').value;
   await save(); clearForm('cli'); renderClientes(); populateSelects();
-  const btn = document.querySelector('#screen-clientes .btn-primary');
+  const btn = document.getElementById('btn-salvar-cliente');
   if (btn) { btn.textContent = '💾 Salvar Cliente'; btn.onclick = salvarCliente; }
+  closeModal('modal-cad-cliente');
   toast('Cliente atualizado!', 'success');
 }
 
@@ -1082,10 +1391,9 @@ function editarMotivo(id) {
   if (!m) return;
   document.getElementById('mot-nome').value = m.nome || '';
   if (document.getElementById('mot-cat')) document.getElementById('mot-cat').value = m.cat || '';
-  const btn = document.querySelector('#screen-motivos .btn-primary');
+  const btn = document.getElementById('btn-salvar-motivo');
   if (btn) { btn.textContent = '💾 Atualizar Motivo'; btn.onclick = () => atualizarMotivo(id); }
-  window.scrollTo(0, 0);
-  toast('Editando motivo — modifique e clique em Atualizar', '');
+  document.getElementById('modal-cad-motivo').classList.add('open');
 }
 async function atualizarMotivo(id) {
   const m = db.motivos.find(x => x.id === id);
@@ -1093,8 +1401,9 @@ async function atualizarMotivo(id) {
   m.nome = document.getElementById('mot-nome').value.trim();
   if (document.getElementById('mot-cat')) m.cat = document.getElementById('mot-cat').value;
   await save(); document.getElementById('mot-nome').value = ''; renderMotivos();
-  const btn = document.querySelector('#screen-motivos .btn-primary');
+  const btn = document.getElementById('btn-salvar-motivo');
   if (btn) { btn.textContent = '💾 Salvar Motivo'; btn.onclick = salvarMotivo; }
+  closeModal('modal-cad-motivo');
   toast('Motivo atualizado!', 'success');
 }
 
@@ -1115,14 +1424,77 @@ function fmtVal(v) { return 'R$ ' + (v||0).toLocaleString('pt-BR', {minimumFract
 function mesFromDate(d) { const meses=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez']; return d ? meses[parseInt(d.split('-')[1])-1] : ''; }
 function anoFromDate(d) { return d ? d.split('-')[0] : ''; }
 
-function clearOrc() { ['orc-cliente','orc-produto','orc-subproduto','orc-status'].forEach(id => document.getElementById(id).selectedIndex=0); ['orc-valor','orc-dt-entrada','orc-dt-conclusao','orc-obs'].forEach(id => document.getElementById(id).value=''); document.getElementById('orc-dt-entrada').value = new Date().toISOString().slice(0,10); }
+function clearOrc() {
+  ['orc-subproduto','orc-status'].forEach(id => document.getElementById(id).selectedIndex=0);
+  ['orc-valor','orc-dt-entrada','orc-dt-conclusao','orc-obs','orc-pagamento'].forEach(id => document.getElementById(id).value='');
+  document.getElementById('orc-dt-entrada').value = new Date().toISOString().slice(0,10);
+  document.getElementById('orc-cliente').value = ''; document.getElementById('orc-cliente-busca').value = '';
+  document.getElementById('orc-produto').value = ''; document.getElementById('orc-produto-busca').value = '';
+  itensOrcAtual = [];
+  renderItensOrc();
+  fotosOrcAtual = ['', '', '', ''];
+  renderFotosOrc();
+}
+
+// Acha um produto pelo nome digitado (ignorando o prefixo [Produto]/[Serviço]) ou cadastra um novo automaticamente
+function encontrarOuCriarProduto(textoBruto, precoDefault) {
+  const nomeLimpo = (textoBruto||'').replace(/^\[(Produto|Serviço)\]\s*/i, '').trim();
+  if (!nomeLimpo) return '';
+  const existente = db.produtos.find(p => p.nome.trim().toLowerCase() === nomeLimpo.toLowerCase());
+  if (existente) return existente.id;
+  const novo = { id: uid(), nome: nomeLimpo, tipo: 'Produto', codigo: '', unidade: 'UN', preco: precoDefault || 0, desc: '' };
+  db.produtos.push(novo);
+  return novo.id;
+}
+// Acha um cliente pelo nome digitado ou cadastra um novo automaticamente
+function encontrarOuCriarCliente(textoBruto) {
+  const nome = (textoBruto||'').trim();
+  if (!nome) return '';
+  const existente = db.clientes.find(c => c.nome.trim().toLowerCase() === nome.toLowerCase());
+  if (existente) return existente.id;
+  const novo = { id: uid(), nome, doc: '', tel: '', cidade: '' };
+  db.clientes.push(novo);
+  return novo.id;
+}
+// Se o campo já tem um id selecionado, usa ele; senão, tenta resolver/cadastrar pelo texto digitado
+function resolverClienteAoSalvar() {
+  const hidden = document.getElementById('orc-cliente');
+  if (hidden.value) return hidden.value;
+  const id = encontrarOuCriarCliente(document.getElementById('orc-cliente-busca').value);
+  if (id) hidden.value = id;
+  return id;
+}
+function resolverProdutoAoSalvar() {
+  const hidden = document.getElementById('orc-produto');
+  if (hidden.value) return hidden.value;
+  const id = encontrarOuCriarProduto(document.getElementById('orc-produto-busca').value, parseFloat(document.getElementById('orc-valor').value) || 0);
+  if (id) hidden.value = id;
+  return id;
+}
 
 async function salvarOrcamento() {
-  const cliId = document.getElementById('orc-cliente').value;
-  const prodId = document.getElementById('orc-produto').value;
+  const cliId = resolverClienteAoSalvar();
+  const prodId = resolverProdutoAoSalvar();
   const valor = parseFloat(document.getElementById('orc-valor').value) || 0;
   const dtEntrada = document.getElementById('orc-dt-entrada').value;
   if (!cliId || !prodId || !dtEntrada) return toast('Preencha cliente, produto e data de entrada', 'error');
+  const itens = itensOrcAtual
+    .map(it => {
+      if (it.produtoId) return it;
+      // linha com texto digitado mas sem seleção/cadastro: resolve ou cadastra automaticamente
+      const inp = document.getElementById('item-busca-' + it.id);
+      const texto = inp ? inp.value.trim() : '';
+      if (!texto) return it;
+      const pid = encontrarOuCriarProduto(texto, it.precoUnit || 0);
+      const p = db.produtos.find(x => x.id === pid);
+      return { ...it, produtoId: pid, unidade: p ? p.unidade : it.unidade, precoUnit: it.precoUnit || (p ? p.preco : 0) };
+    })
+    .filter(it => it.produtoId) // ignora linhas realmente em branco
+    .map((it, i) => {
+      const qtd = parseFloat(it.qtd) || 1; // nunca deixa em branco: assume 1
+      const precoUnit = parseFloat(it.precoUnit) || 0;
+      return { id: it.id, seq: i+1, produtoId: it.produtoId, unidade: it.unidade, qtd, precoUnit, precoTotal: qtd*precoUnit, usado: !!it.usado };
+    });
   const orc = {
     id: uid(), _num: orcCounter++,
     clienteId: cliId, produtoId: prodId,
@@ -1131,12 +1503,414 @@ async function salvarOrcamento() {
     dtConclusao: document.getElementById('orc-dt-conclusao').value,
     status: document.getElementById('orc-status').value,
     obs: document.getElementById('orc-obs').value,
+    condicaoPagamento: document.getElementById('orc-pagamento').value,
+    itens,
+    fotos: [...fotosOrcAtual],
     followup: '', motivoId: '', obsReprov: '', dtReprov: '',
     dtInstalacaoInicio: '', dtInstalacaoConclusao: '', statusInstalacao: '',
     dtConcluido: ''
   };
   db.orcamentos.push(orc);
-  await save(); clearOrc(); renderOrcamentos(); toast('Orçamento lançado!', 'success');
+  await save();
+  populateSelects();
+  if (document.getElementById('screen-clientes').classList.contains('active')) renderClientes();
+  if (document.getElementById('screen-produtos').classList.contains('active')) renderProdutos();
+  clearOrc(); renderOrcamentos(); closeModal('modal-novo-orc'); toast('Orçamento lançado!', 'success');
+}
+
+// ===== ITENS DO ORÇAMENTO (lista dentro do lançamento) =====
+function adicionarItemOrc() {
+  itensOrcAtual.push({ id: uid(), produtoId: '', unidade: '', qtd: 1, precoUnit: 0, usado: false });
+  renderItensOrc();
+}
+function removerItemOrc(itemId) {
+  itensOrcAtual = itensOrcAtual.filter(x => x.id !== itemId);
+  renderItensOrc();
+}
+function itemOrcProdutoChange(itemId, produtoId) {
+  const it = itensOrcAtual.find(x => x.id === itemId);
+  if (!it) return;
+  it.produtoId = produtoId;
+  const p = db.produtos.find(x => x.id === produtoId);
+  it.unidade = p ? (p.unidade || 'UN') : '';
+  it.precoUnit = p ? (p.preco || 0) : 0; // traz o preço unitário cadastrado no produto
+  renderItensOrc();
+}
+function itemOrcQtdChange(itemId, val) {
+  const it = itensOrcAtual.find(x => x.id === itemId);
+  if (!it) return;
+  it.qtd = parseFloat(val); if (!it.qtd || it.qtd <= 0) it.qtd = 1; // não deixa em branco: assume 1
+  renderItensOrc();
+}
+function itemOrcPrecoChange(itemId, val) {
+  const it = itensOrcAtual.find(x => x.id === itemId);
+  if (!it) return;
+  it.precoUnit = parseFloat(val) || 0;
+  renderItensOrc();
+}
+function itemOrcUsadoChange(itemId, checked) {
+  const it = itensOrcAtual.find(x => x.id === itemId);
+  if (it) it.usado = checked;
+}
+// ---- Combo de produto dentro de cada linha da lista de itens ----
+function comboItemLabel(produtoId) {
+  const p = db.produtos.find(x => x.id === produtoId);
+  return p ? `[${p.tipo||'Produto'}] ${p.nome}` : '';
+}
+function comboItemFocus(itemId) {
+  const inp = document.getElementById('item-busca-' + itemId);
+  const dd = document.getElementById('item-dropdown-' + itemId);
+  if (!inp || !dd) return;
+  comboShow(inp, dd, comboProdutoItens(), inp.value, '+ Cadastrar novo produto...',
+    (id) => itemOrcProdutoChange(itemId, id),
+    () => abrirNovoProdutoRapido(itemId));
+}
+function comboItemInput(itemId, val) {
+  const it = itensOrcAtual.find(x => x.id === itemId);
+  if (it && it.produtoId && comboItemLabel(it.produtoId) !== val) it.produtoId = ''; // texto não bate mais com a seleção anterior
+  comboItemFocus(itemId);
+}
+function renderItensOrc() {
+  const tbody = document.getElementById('tbl-itens-orc');
+  if (!tbody) return;
+  if (!itensOrcAtual.length) {
+    tbody.innerHTML = '<tr><td colspan="8"><div class="empty-state" style="padding:14px;"><p>Nenhum item adicionado. Clique em "+ Adicionar Item".</p></div></td></tr>';
+    return;
+  }
+  const inputStyle = 'width:100%;border:1.5px solid var(--cinza-border);border-radius:7px;padding:6px 8px;font-size:13px;font-family:inherit;';
+  tbody.innerHTML = itensOrcAtual.map((it, idx) => {
+    const precoTotal = (parseFloat(it.qtd)||0) * (parseFloat(it.precoUnit)||0);
+    const labelAtual = comboItemLabel(it.produtoId);
+    return `<tr>
+      <td style="text-align:center;font-weight:700;color:var(--cinza-texto);">${idx+1}</td>
+      <td>
+        <div class="combo">
+          <input type="text" class="combo-search" id="item-busca-${it.id}" style="${inputStyle}" value="${labelAtual}" placeholder="Digite para buscar..." autocomplete="off" oninput="comboItemInput('${it.id}', this.value)" onfocus="comboItemFocus('${it.id}')">
+          <div class="combo-dropdown" id="item-dropdown-${it.id}"></div>
+        </div>
+      </td>
+      <td style="text-align:center;"><span class="badge badge-gray">${it.unidade || '-'}</span></td>
+      <td><input type="number" min="0" step="1" value="${it.qtd}" style="${inputStyle}" onchange="itemOrcQtdChange('${it.id}', this.value)"></td>
+      <td><input type="number" min="0" step="0.01" value="${it.precoUnit}" style="${inputStyle}" onchange="itemOrcPrecoChange('${it.id}', this.value)"></td>
+      <td style="font-weight:700;color:var(--azul-escuro);">${fmtVal(precoTotal)}</td>
+      <td style="text-align:center;"><input type="checkbox" ${it.usado?'checked':''} style="width:18px;height:18px;cursor:pointer;" onchange="itemOrcUsadoChange('${it.id}', this.checked)"></td>
+      <td style="text-align:center;"><button class="btn btn-danger btn-sm" onclick="removerItemOrc('${it.id}')">🗑</button></td>
+    </tr>`;
+  }).join('');
+}
+
+// ===== FOTOS DE REFERÊNCIA (somente conferência interna — não entram no PDF) =====
+function carregarFotoOrc(idx, input) {
+  const file = input.files && input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    fotosOrcAtual[idx-1] = e.target.result;
+    renderFotoSlot(idx);
+  };
+  reader.readAsDataURL(file);
+}
+function removerFotoOrc(idx) {
+  fotosOrcAtual[idx-1] = '';
+  const inputEl = document.getElementById('foto-input-' + idx);
+  if (inputEl) inputEl.value = '';
+  renderFotoSlot(idx);
+}
+function renderFotoSlot(idx) {
+  const el = document.getElementById('foto-preview-' + idx);
+  if (!el) return;
+  const val = fotosOrcAtual[idx-1];
+  el.innerHTML = val ? `<img src="${val}">` : `<span class="foto-placeholder">📷 Foto ${idx}</span>`;
+}
+function renderFotosOrc() {
+  for (let i = 1; i <= 4; i++) renderFotoSlot(i);
+}
+// Visualizador simples de fotos já salvas em um orçamento (somente leitura)
+function verFotosOrc(id) {
+  const o = db.orcamentos.find(x => x.id === id);
+  if (!o) return;
+  const fotos = (o.fotos || []).filter(Boolean);
+  if (!fotos.length) { toast('Nenhuma foto cadastrada para este orçamento', ''); return; }
+  const html = fotos.map(f => `<img src="${f}" style="width:100%;border-radius:8px;border:1px solid var(--cinza-border);">`).join('');
+  document.getElementById('grid-ver-fotos').innerHTML = html;
+  document.getElementById('modal-ver-fotos').classList.add('open');
+}
+
+// ===== GERAR PDF DO ORÇAMENTO (folha para enviar ao cliente) =====
+function esc(v) { return (v==null?'':String(v)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function gerarPdfOrcamento(id) {
+  const o = db.orcamentos.find(x => x.id === id);
+  if (!o) return;
+  const cli = db.clientes.find(c => c.id === o.clienteId);
+  const prod = db.produtos.find(p => p.id === o.produtoId);
+  const sub = o.subprodutoId ? db.subprodutos.find(s => s.id === o.subprodutoId) : null;
+  const emp = db.empresa || {};
+  const itens = o.itens || [];
+
+  const itensHtml = itens.length ? itens.map(it => {
+    const p = db.produtos.find(x => x.id === it.produtoId);
+    return `<tr><td>${it.seq}</td><td>${esc(p?p.nome:'-')}</td><td style="text-align:center;">${esc(it.unidade||'-')}</td><td style="text-align:center;">${it.qtd}</td><td style="text-align:right;">${fmtVal(it.precoUnit)}</td><td style="text-align:right;">${fmtVal(it.precoTotal)}</td></tr>`;
+  }).join('') : '';
+
+  const logoHtml = emp.logo ? `<img src="${emp.logo}" style="height:64px;max-width:200px;object-fit:contain;">` : '';
+  const contatoLinha = [emp.telefone, emp.email].filter(Boolean).join('  •  ');
+  const rodapeLinha1 = [emp.nome, emp.cnpj ? ('CNPJ ' + emp.cnpj) : ''].filter(Boolean).join('  •  ');
+  const rodapeLinha2 = [emp.pix ? ('Chave PIX: ' + emp.pix) : '', contatoLinha].filter(Boolean).join('  •  ');
+
+  const html = `<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="UTF-8"><title>Orçamento ORC-${String(o._num).padStart(3,'0')}</title>
+<style>
+  *{box-sizing:border-box;}
+  body{font-family:Arial,Helvetica,sans-serif;color:#1A2340;margin:0;padding:36px 44px;}
+  .header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #1B3A7A;padding-bottom:16px;margin-bottom:22px;gap:20px;}
+  .empresa-nome{font-size:19px;font-weight:800;color:#1B3A7A;}
+  .empresa-info{font-size:11.5px;color:#555;line-height:1.5;}
+  h1{font-size:20px;color:#1B3A7A;margin:0 0 6px;}
+  .meta{font-size:13px;color:#444;margin-bottom:18px;line-height:1.6;}
+  .meta strong{color:#1A2340;}
+  .produto-box{background:#E8F4FC;border:1px solid #29ABE2;border-radius:10px;padding:16px 20px;margin-bottom:20px;}
+  .produto-box .label{font-size:10.5px;text-transform:uppercase;color:#1A56A0;font-weight:700;letter-spacing:.06em;}
+  .produto-box .valor{font-size:20px;font-weight:800;color:#1B3A7A;margin-top:4px;}
+  table{width:100%;border-collapse:collapse;margin-bottom:8px;font-size:12.5px;}
+  th{background:#F4F6FA;padding:8px 10px;text-align:left;border-bottom:2px solid #DDE3EE;font-size:10.5px;text-transform:uppercase;color:#556;letter-spacing:.03em;}
+  td{padding:7px 10px;border-bottom:1px solid #eee;}
+  .totais{width:100%;margin-top:6px;margin-bottom:18px;}
+  .totais td{padding:6px 10px;font-size:13px;}
+  .totais .lbl{text-align:right;color:#555;}
+  .totais .val{text-align:right;font-weight:800;color:#1B3A7A;font-size:17px;border-top:2px solid #1B3A7A;}
+  .pagamento{margin:0 0 18px;padding:10px 16px;background:#FEF3C7;border-left:4px solid #F59E0B;border-radius:6px;font-size:13px;color:#7a4d06;}
+  .obs{font-size:12.5px;color:#444;margin-bottom:18px;}
+  .footer{margin-top:60px;padding-top:14px;border-top:1px solid #ccc;font-size:10.5px;color:#666;text-align:center;line-height:1.8;}
+  .footer .obs-rodape{font-style:italic;margin-top:6px;}
+  @media print{ body{padding:14mm 16mm;} }
+</style></head>
+<body>
+  <div class="header">
+    <div>${logoHtml}</div>
+    <div style="text-align:right;">
+      <div class="empresa-nome">${esc(emp.nome) || 'Sua Empresa'}</div>
+      <div class="empresa-info">
+        ${emp.cnpj ? ('CNPJ: ' + esc(emp.cnpj) + '<br>') : ''}
+        ${emp.endereco ? (esc(emp.endereco) + '<br>') : ''}
+        ${contatoLinha ? esc(contatoLinha) : ''}
+      </div>
+    </div>
+  </div>
+
+  <h1>Orçamento nº ORC-${String(o._num).padStart(3,'0')}</h1>
+  <div class="meta">
+    <strong>Cliente:</strong> ${esc(cli ? cli.nome : '-')}${cli && cli.doc ? (' — ' + esc(cli.doc)) : ''}<br>
+    <strong>Data:</strong> ${fmtDate(o.dtEntrada)}${o.dtConclusao ? ('&nbsp;&nbsp;|&nbsp;&nbsp;<strong>Previsão de conclusão:</strong> ' + fmtDate(o.dtConclusao)) : ''}
+  </div>
+
+  <div class="produto-box">
+    <div class="label">Produto / Serviço</div>
+    <div class="valor">${esc(prod ? prod.nome : '-')}${sub ? (' — ' + esc(sub.nome)) : ''}</div>
+  </div>
+
+  ${itens.length ? `
+  <table>
+    <thead><tr><th style="width:32px;">#</th><th>Item</th><th style="width:70px;text-align:center;">Unid.</th><th style="width:70px;text-align:center;">Qtd</th><th style="width:100px;text-align:right;">Preço Unit.</th><th style="width:110px;text-align:right;">Total</th></tr></thead>
+    <tbody>${itensHtml}</tbody>
+  </table>` : ''}
+
+  <table class="totais"><tr><td class="lbl">VALOR TOTAL</td><td class="val" style="width:160px;">${fmtVal(o.valor)}</td></tr></table>
+
+  ${o.condicaoPagamento ? `<div class="pagamento"><strong>Condição de Pagamento:</strong> ${esc(o.condicaoPagamento)}</div>` : ''}
+  ${o.obs ? `<div class="obs"><strong>Observações:</strong> ${esc(o.obs)}</div>` : ''}
+
+  <div class="footer">
+    ${esc(rodapeLinha1)}<br>
+    ${esc(rodapeLinha2)}
+    ${emp.obs ? `<div class="obs-rodape">${esc(emp.obs)}</div>` : ''}
+  </div>
+
+  <script>window.onload = function(){ setTimeout(function(){ window.print(); }, 200); };<\/script>
+</body></html>`;
+
+  const win = window.open('', '_blank');
+  if (!win) { toast('Permita pop-ups para gerar o PDF', 'error'); return; }
+  win.document.open();
+  win.document.write(html);
+  win.document.close();
+}
+
+
+// Ver itens de um orçamento já lançado
+let itensEditOrcId = null; // id do orçamento cujos itens estão sendo vistos/editados no modal
+function verItensOrc(id) {
+  const o = db.orcamentos.find(x => x.id === id);
+  if (!o) return;
+  itensEditOrcId = id;
+  if (!o.itens) o.itens = [];
+  renderVerItensOrc();
+  document.getElementById('modal-ver-itens').classList.add('open');
+}
+function veritemRecalc(it) {
+  const qtd = parseFloat(it.qtd) || 0;
+  const preco = parseFloat(it.precoUnit) || 0;
+  it.precoTotal = qtd * preco;
+}
+function renderVerItensOrc() {
+  const o = db.orcamentos.find(x => x.id === itensEditOrcId);
+  const tbody = document.getElementById('tbl-ver-itens');
+  if (!o || !tbody) return;
+  const itens = o.itens || [];
+  if (!itens.length) {
+    tbody.innerHTML = '<tr><td colspan="8"><div class="empty-state" style="padding:14px;"><p>Nenhum item cadastrado. Clique em "+ Adicionar Item".</p></div></td></tr>';
+    return;
+  }
+  const inputStyle = 'width:100%;border:1.5px solid var(--cinza-border);border-radius:7px;padding:6px 8px;font-size:13px;font-family:inherit;';
+  tbody.innerHTML = itens.map((it, idx) => {
+    veritemRecalc(it);
+    const labelAtual = comboItemLabel(it.produtoId);
+    return `<tr>
+      <td style="text-align:center;font-weight:700;color:var(--cinza-texto);">${idx+1}</td>
+      <td>
+        <div class="combo">
+          <input type="text" class="combo-search" id="veritem-busca-${it.id}" style="${inputStyle}" value="${labelAtual}" placeholder="Digite para buscar..." autocomplete="off" oninput="veritemComboInput('${it.id}', this.value)" onfocus="veritemComboFocus('${it.id}')">
+          <div class="combo-dropdown" id="veritem-dropdown-${it.id}"></div>
+        </div>
+      </td>
+      <td style="text-align:center;"><span class="badge badge-gray">${it.unidade || '-'}</span></td>
+      <td><input type="number" min="0" step="1" value="${it.qtd}" style="${inputStyle}" onchange="veritemQtdChange('${it.id}', this.value)"></td>
+      <td><input type="number" min="0" step="0.01" value="${it.precoUnit}" style="${inputStyle}" onchange="veritemPrecoChange('${it.id}', this.value)"></td>
+      <td style="font-weight:700;color:var(--azul-escuro);">${fmtVal(it.precoTotal)}</td>
+      <td style="text-align:center;"><input type="checkbox" ${it.usado?'checked':''} style="width:18px;height:18px;cursor:pointer;" onchange="veritemUsadoChange('${it.id}', this.checked)"></td>
+      <td style="text-align:center;"><button class="btn btn-danger btn-sm" onclick="veritemRemover('${it.id}')">🗑</button></td>
+    </tr>`;
+  }).join('');
+}
+async function veritemAdicionar() {
+  const o = db.orcamentos.find(x => x.id === itensEditOrcId);
+  if (!o) return;
+  if (!o.itens) o.itens = [];
+  o.itens.push({ id: uid(), seq: o.itens.length + 1, produtoId: '', unidade: '', qtd: 1, precoUnit: 0, precoTotal: 0, usado: false });
+  renderVerItensOrc();
+  await save();
+}
+async function veritemRemover(itemId) {
+  const o = db.orcamentos.find(x => x.id === itensEditOrcId);
+  if (!o) return;
+  o.itens = (o.itens || []).filter(x => x.id !== itemId);
+  o.itens.forEach((it, i) => it.seq = i + 1);
+  renderVerItensOrc();
+  await save();
+}
+async function veritemProdutoChange(itemId, produtoId) {
+  const o = db.orcamentos.find(x => x.id === itensEditOrcId);
+  if (!o) return;
+  const it = (o.itens || []).find(x => x.id === itemId);
+  if (!it) return;
+  it.produtoId = produtoId;
+  const p = db.produtos.find(x => x.id === produtoId);
+  it.unidade = p ? (p.unidade || 'UN') : '';
+  it.precoUnit = p ? (p.preco || 0) : 0;
+  renderVerItensOrc();
+  await save();
+}
+async function veritemQtdChange(itemId, val) {
+  const o = db.orcamentos.find(x => x.id === itensEditOrcId);
+  if (!o) return;
+  const it = (o.itens || []).find(x => x.id === itemId);
+  if (!it) return;
+  it.qtd = parseFloat(val); if (!it.qtd || it.qtd <= 0) it.qtd = 1; // não deixa em branco: assume 1
+  renderVerItensOrc();
+  await save();
+}
+async function veritemPrecoChange(itemId, val) {
+  const o = db.orcamentos.find(x => x.id === itensEditOrcId);
+  if (!o) return;
+  const it = (o.itens || []).find(x => x.id === itemId);
+  if (!it) return;
+  it.precoUnit = parseFloat(val) || 0;
+  renderVerItensOrc();
+  await save();
+}
+async function veritemUsadoChange(itemId, checked) {
+  const o = db.orcamentos.find(x => x.id === itensEditOrcId);
+  if (!o) return;
+  const it = (o.itens || []).find(x => x.id === itemId);
+  if (it) { it.usado = checked; await save(); }
+}
+function veritemComboFocus(itemId) {
+  const inp = document.getElementById('veritem-busca-' + itemId);
+  const dd = document.getElementById('veritem-dropdown-' + itemId);
+  if (!inp || !dd) return;
+  comboShow(inp, dd, comboProdutoItens(), inp.value, '+ Cadastrar novo produto...',
+    (id) => veritemProdutoChange(itemId, id),
+    () => veritemAbrirNovoProduto(itemId));
+}
+function veritemComboInput(itemId, val) {
+  const o = db.orcamentos.find(x => x.id === itensEditOrcId);
+  const it = o ? (o.itens || []).find(x => x.id === itemId) : null;
+  if (it && it.produtoId && comboItemLabel(it.produtoId) !== val) it.produtoId = ''; // texto não bate mais com a seleção anterior
+  veritemComboFocus(itemId);
+}
+function veritemAbrirNovoProduto(itemId) {
+  itemPendenteNovoProdutoVerItens = itemId;
+  itemPendenteNovoProduto = null;
+  pendenteNovoProdutoParaSelect = null;
+  document.getElementById('npr-nome').value = '';
+  document.getElementById('npr-tipo').value = 'Produto';
+  document.getElementById('npr-unidade').value = 'UN';
+  document.getElementById('npr-preco').value = '';
+  document.getElementById('modal-novo-produto-rapido').classList.add('open');
+  setTimeout(() => document.getElementById('npr-nome').focus(), 100);
+}
+
+// Cadastro rápido de produto direto na lista de itens
+function abrirNovoProdutoRapido(itemId) {
+  itemPendenteNovoProduto = itemId;
+  pendenteNovoProdutoParaSelect = null;
+  document.getElementById('npr-nome').value = '';
+  document.getElementById('npr-tipo').value = 'Produto';
+  document.getElementById('npr-unidade').value = 'UN';
+  document.getElementById('npr-preco').value = '';
+  document.getElementById('modal-novo-produto-rapido').classList.add('open');
+  setTimeout(() => document.getElementById('npr-nome').focus(), 100);
+}
+// Abre o cadastro de produto a partir de outra tela (ex: select Produto/Serviço do Novo Orçamento)
+function abrirCadastroProdutoRapido(selectId) {
+  pendenteNovoProdutoParaSelect = selectId;
+  itemPendenteNovoProduto = null;
+  document.getElementById('npr-nome').value = '';
+  document.getElementById('npr-tipo').value = 'Produto';
+  document.getElementById('npr-unidade').value = 'UN';
+  document.getElementById('npr-preco').value = '';
+  document.getElementById('modal-novo-produto-rapido').classList.add('open');
+  setTimeout(() => document.getElementById('npr-nome').focus(), 100);
+}
+async function salvarNovoProdutoRapido() {
+  const nome = document.getElementById('npr-nome').value.trim();
+  if (!nome) return toast('Informe o nome do produto', 'error');
+  const novo = { id: uid(), nome, tipo: document.getElementById('npr-tipo').value, codigo: '', unidade: document.getElementById('npr-unidade').value, preco: parseFloat(document.getElementById('npr-preco').value) || 0, desc: '' };
+  db.produtos.push(novo);
+  await save();
+  populateSelects();
+  if (document.getElementById('screen-produtos').classList.contains('active')) renderProdutos();
+  if (itemPendenteNovoProduto) {
+    const it = itensOrcAtual.find(x => x.id === itemPendenteNovoProduto);
+    if (it) { it.produtoId = novo.id; it.unidade = novo.unidade; it.precoUnit = novo.preco; }
+    itemPendenteNovoProduto = null;
+    renderItensOrc();
+  }
+  if (itemPendenteNovoProdutoVerItens) {
+    const o = db.orcamentos.find(x => x.id === itensEditOrcId);
+    const it = o ? (o.itens || []).find(x => x.id === itemPendenteNovoProdutoVerItens) : null;
+    if (it) { it.produtoId = novo.id; it.unidade = novo.unidade; it.precoUnit = novo.preco; }
+    itemPendenteNovoProdutoVerItens = null;
+    renderVerItensOrc();
+    await save();
+  }
+  if (pendenteNovoProdutoParaSelect === 'orc-produto') {
+    refreshOrcProdutoSelect(novo.id);
+    document.getElementById('orc-subproduto').innerHTML = '<option value="">Nenhum</option>';
+    document.getElementById('orc-valor').value = novo.preco || 0;
+  }
+  pendenteNovoProdutoParaSelect = null;
+  closeModal('modal-novo-produto-rapido');
+  toast('Produto cadastrado e selecionado!', 'success');
 }
 
 function filterOrc(list, prefixo) {
@@ -1163,7 +1937,7 @@ function renderOrcamentos() {
     const days = calcLeadTime(o.dtEntrada, o.dtConclusao);
     const stBadge = o.status === 'Em andamento' ? '<span class="badge badge-blue">Em andamento</span>' : '<span class="badge badge-orange">Enviado ao cliente</span>';
     const actions = o.status === 'Enviado ao cliente' ? `<button class="btn btn-primary btn-sm" onclick="openFollowup('${o.id}')">📞 Follow-up</button>` : `<button class="btn btn-secondary btn-sm" onclick="enviarCliente('${o.id}')">📤 Enviar</button>`;
-    return `<tr><td><strong>ORC-${String(o._num).padStart(3,'0')}</strong></td><td>${cli?.nome||'-'}</td><td>${prod?.nome||'-'}</td><td>${fmtVal(o.valor)}</td><td>${fmtDate(o.dtEntrada)}</td><td>${fmtDate(o.dtConclusao)||'—'}</td><td>${ltBadge(days)}</td><td>${stBadge}</td><td class="td-actions">${actions}<button class="btn-bell btn-sm" onclick="abrirLembreteOrc('${o.id}')" title="Criar lembrete">🔔</button><button class="btn btn-secondary btn-sm" onclick="abrirEditarOrc('${o.id}')">✏️</button><button class="btn btn-danger btn-sm" onclick="delOrc('${o.id}')">🗑</button></td></tr>`;
+    return `<tr><td><strong>ORC-${String(o._num).padStart(3,'0')}</strong></td><td>${cli?.nome||'-'}</td><td>${prod?.nome||'-'}</td><td>${fmtVal(o.valor)}</td><td>${fmtDate(o.dtEntrada)}</td><td>${fmtDate(o.dtConclusao)||'—'}</td><td>${ltBadge(days)}</td><td>${stBadge}</td><td class="td-actions">${actions}<button class="btn btn-secondary btn-sm" onclick="verItensOrc('${o.id}')" title="Ver itens do orçamento">📋</button><button class="btn btn-secondary btn-sm" onclick="verFotosOrc('${o.id}')" title="Ver fotos de referência">📷</button><button class="btn btn-secondary btn-sm" onclick="gerarPdfOrcamento('${o.id}')" title="Gerar PDF para enviar ao cliente">📄</button><button class="btn-bell btn-sm" onclick="abrirLembreteOrc('${o.id}')" title="Criar lembrete">🔔</button><button class="btn btn-secondary btn-sm" onclick="abrirEditarOrc('${o.id}')">✏️</button><button class="btn btn-danger btn-sm" onclick="delOrc('${o.id}')">🗑</button></td></tr>`;
   }).join('') : '<tr><td colspan="9"><div class="empty-state"><div class="ei">📝</div><p>Nenhum orçamento encontrado</p></div></td></tr>';
 }
 async function enviarCliente(id) {
@@ -1184,7 +1958,7 @@ function renderAguardando() {
     const fu = o.followup || '';
     return `<tr><td><strong>ORC-${String(o._num).padStart(3,'0')}</strong></td><td>${cli?.nome||'-'}</td><td>${prod?.nome||'-'}</td><td>${fmtVal(o.valor)}</td><td>${fmtDate(o.dtEntrada)}</td>
     <td><span class="badge ${fuBadges[fu]}">${fuLabels[fu]}</span></td>
-    <td class="td-actions"><button class="btn btn-primary btn-sm" onclick="openFollowup('${o.id}')">📞 Atualizar</button><button class="btn btn-secondary btn-sm" onclick="abrirEditarOrc('${o.id}')">✏️</button><button class="btn btn-sm" style="background:#fef3c7;color:#92400e;border:1px solid #fcd34d;border-radius:6px;padding:4px 8px;cursor:pointer;font-size:12px;" onclick="abrirReverter('${o.id}','aguardando')">↩️</button><button class="btn-bell btn-sm" onclick="abrirLembreteOrc('${o.id}')" title="Criar lembrete">🔔</button></td></tr>`;
+    <td class="td-actions"><button class="btn btn-primary btn-sm" onclick="openFollowup('${o.id}')">📞 Atualizar</button><button class="btn btn-secondary btn-sm" onclick="verFotosOrc('${o.id}')" title="Ver fotos de referência">📷</button><button class="btn btn-secondary btn-sm" onclick="gerarPdfOrcamento('${o.id}')" title="Gerar PDF para enviar ao cliente">📄</button><button class="btn btn-secondary btn-sm" onclick="abrirEditarOrc('${o.id}')">✏️</button><button class="btn btn-sm" style="background:#fef3c7;color:#92400e;border:1px solid #fcd34d;border-radius:6px;padding:4px 8px;cursor:pointer;font-size:12px;" onclick="abrirReverter('${o.id}','aguardando')">↩️</button><button class="btn-bell btn-sm" onclick="abrirLembreteOrc('${o.id}')" title="Criar lembrete">🔔</button></td></tr>`;
   }).join('') : '<tr><td colspan="7"><div class="empty-state"><div class="ei">⏳</div><p>Nenhum orçamento aguardando retorno</p></div></td></tr>';
 }
 
@@ -1236,6 +2010,8 @@ function renderInstalacao() {
     <td><span class="badge badge-orange">Em andamento</span></td>
     <td class="td-actions">
       <button class="btn btn-success btn-sm" onclick="openInstModal('${o.id}')">▶ Avançar</button>
+      <button class="btn btn-secondary btn-sm" onclick="verFotosOrc('${o.id}')" title="Ver fotos de referência">📷</button>
+      <button class="btn btn-secondary btn-sm" onclick="gerarPdfOrcamento('${o.id}')" title="Gerar PDF para enviar ao cliente">📄</button>
       <button class="btn btn-secondary btn-sm" onclick="abrirEditarOrc('${o.id}')">✏️</button>
       <button class="btn btn-sm" style="background:#fef3c7;color:#92400e;border:1px solid #fcd34d;border-radius:6px;padding:4px 8px;cursor:pointer;font-size:12px;" onclick="abrirReverter('${o.id}','instalacao')">↩️ Reverter</button>
       <button class="btn-bell btn-sm" onclick="abrirLembreteOrc('${o.id}')" title="Criar lembrete">🔔</button>
@@ -1262,6 +2038,26 @@ async function salvarInstalacaoStatus() {
 }
 
 // ===== CONCLUÍDOS =====
+// ===== DUPLICAR PEDIDO (a partir de um projeto Concluído) =====
+function duplicarPedido(id) {
+  const o = db.orcamentos.find(x => x.id === id);
+  if (!o) return;
+  clearOrc();
+  populateOrcSelects();
+  if (o.clienteId) comboClienteSelecionar(o.clienteId);
+  if (o.produtoId) comboProdutoSelecionar(o.produtoId); // já preenche subproduto e valor com base no produto
+  if (o.subprodutoId) document.getElementById('orc-subproduto').value = o.subprodutoId;
+  document.getElementById('orc-valor').value = o.valor || 0; // garante o valor original do pedido
+  document.getElementById('orc-status').value = 'Em andamento';
+  document.getElementById('orc-pagamento').value = o.condicaoPagamento || '';
+  document.getElementById('orc-obs').value = o.obs || '';
+  // clona os itens (com novos ids e "usado" reiniciado, já que é um pedido novo)
+  itensOrcAtual = (o.itens || []).map(it => ({ id: uid(), produtoId: it.produtoId, unidade: it.unidade, qtd: it.qtd, precoUnit: it.precoUnit, usado: false }));
+  renderItensOrc();
+  document.getElementById('modal-novo-orc').classList.add('open');
+  toast('Pedido duplicado — revise os dados e clique em Salvar Orçamento', '');
+}
+
 function renderConcluidos() {
   let list = db.orcamentos.filter(o => o.statusInstalacao === 'Concluído');
   list = filterOrc(list, 'con');
@@ -1273,7 +2069,7 @@ function renderConcluidos() {
     const cli = db.clientes.find(c => c.id === o.clienteId);
     const prod = db.produtos.find(p => p.id === o.produtoId);
     const days = calcLeadTime(o.dtEntrada, o.dtConcluido || o.dtInstalacaoConclusao);
-    return `<tr><td><strong>ORC-${String(o._num).padStart(3,'0')}</strong></td><td>${cli?.nome||'-'}</td><td>${prod?.nome||'-'}</td><td>${fmtVal(o.valor)}</td><td>${fmtDate(o.dtConcluido||o.dtInstalacaoConclusao)}</td><td>${ltBadge(days)}</td><td class="td-actions"><button class="btn btn-secondary btn-sm" onclick="abrirEditarOrc('${o.id}')">✏️ Editar</button><button class="btn btn-sm" style="background:#fef3c7;color:#92400e;border:1px solid #fcd34d;border-radius:6px;padding:4px 8px;cursor:pointer;font-size:12px;" onclick="abrirReverter('${o.id}','concluido')">↩️ Reverter</button></td></tr>`;
+    return `<tr><td><strong>ORC-${String(o._num).padStart(3,'0')}</strong></td><td>${cli?.nome||'-'}</td><td>${prod?.nome||'-'}</td><td>${fmtVal(o.valor)}</td><td>${fmtDate(o.dtConcluido||o.dtInstalacaoConclusao)}</td><td>${ltBadge(days)}</td><td class="td-actions"><button class="btn btn-secondary btn-sm" onclick="abrirEditarOrc('${o.id}')">✏️ Editar</button><button class="btn btn-secondary btn-sm" onclick="verFotosOrc('${o.id}')" title="Ver fotos de referência">📷</button><button class="btn btn-secondary btn-sm" onclick="gerarPdfOrcamento('${o.id}')" title="Gerar PDF para enviar ao cliente">📄</button><button class="btn btn-secondary btn-sm" onclick="duplicarPedido('${o.id}')" title="Duplicar pedido">📑 Duplicar</button><button class="btn btn-sm" style="background:#fef3c7;color:#92400e;border:1px solid #fcd34d;border-radius:6px;padding:4px 8px;cursor:pointer;font-size:12px;" onclick="abrirReverter('${o.id}','concluido')">↩️ Reverter</button></td></tr>`;
   }).join('') : '<tr><td colspan="7"><div class="empty-state"><div class="ei">✅</div><p>Nenhum projeto concluído ainda</p></div></td></tr>';
 }
 
@@ -1288,13 +2084,14 @@ const TELAS_CONFIG = [
   {key:'motivos', label:'📋 Motivos Reprovação'},
   {key:'orcamentos', label:'📝 Lançar Orçamento'},
   {key:'aguardando', label:'⏳ Aguardando Cliente'},
+  {key:'lembretes', label:'🔔 Lembretes'},
   {key:'instalacao', label:'🏗️ Instalação'},
   {key:'calendario', label:'📅 Calendário'},
   {key:'concluidos', label:'✅ Concluídos'},
   {key:'cobranca', label:'💰 Cobrança'},
   {key:'reprovados', label:'❌ Reprovados'},
 ];
-const DEFAULT_PERMS = ['dashboard','orcamentos','aguardando','instalacao','calendario','concluidos'];
+const DEFAULT_PERMS = ['dashboard','orcamentos','aguardando','lembretes','instalacao','calendario','concluidos'];
 
 function getPerms() {
   return JSON.parse(localStorage.getItem('perms_vendedor') || JSON.stringify(DEFAULT_PERMS));
@@ -1316,8 +2113,59 @@ function applyPerms() {
 // ===== ADMIN: USUÁRIOS =====
 let editUserId = null;
 async function renderAdmin() {
+  renderEmpresaForm();
   renderAdmUsuarios();
   renderPermissoesGrid();
+}
+
+// ===== DADOS DA EMPRESA (usados no PDF de orçamento) =====
+let empresaLogoTemp = '';
+function carregarLogoEmpresa(input) {
+  const file = input.files && input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    empresaLogoTemp = e.target.result;
+    const img = document.getElementById('emp-logo-preview');
+    img.src = empresaLogoTemp; img.style.display = 'inline-block';
+  };
+  reader.readAsDataURL(file);
+}
+function removerLogoEmpresa() {
+  empresaLogoTemp = '';
+  document.getElementById('emp-logo-preview').src = '';
+  document.getElementById('emp-logo-preview').style.display = 'none';
+  document.getElementById('emp-logo-file').value = '';
+}
+function renderEmpresaForm() {
+  const e = db.empresa || {};
+  document.getElementById('emp-nome').value = e.nome || '';
+  document.getElementById('emp-cnpj').value = e.cnpj || '';
+  document.getElementById('emp-telefone').value = e.telefone || '';
+  document.getElementById('emp-email').value = e.email || '';
+  document.getElementById('emp-endereco').value = e.endereco || '';
+  document.getElementById('emp-pix').value = e.pix || '';
+  document.getElementById('emp-obs').value = e.obs || '';
+  empresaLogoTemp = e.logo || '';
+  const img = document.getElementById('emp-logo-preview');
+  if (e.logo) { img.src = e.logo; img.style.display = 'inline-block'; }
+  else { img.src = ''; img.style.display = 'none'; }
+}
+async function salvarDadosEmpresa() {
+  const nome = document.getElementById('emp-nome').value.trim();
+  if (!nome) return toast('Informe o nome da empresa', 'error');
+  db.empresa = {
+    nome,
+    cnpj: document.getElementById('emp-cnpj').value.trim(),
+    telefone: document.getElementById('emp-telefone').value.trim(),
+    email: document.getElementById('emp-email').value.trim(),
+    endereco: document.getElementById('emp-endereco').value.trim(),
+    pix: document.getElementById('emp-pix').value.trim(),
+    obs: document.getElementById('emp-obs').value.trim(),
+    logo: empresaLogoTemp || ''
+  };
+  await save();
+  toast('Dados da empresa salvos!', 'success');
 }
 
 async function renderAdmUsuarios() {
@@ -1631,6 +2479,7 @@ function abrirEditarOrc(id) {
   document.getElementById('edit-orc-valor').value = o.valor || '';
   document.getElementById('edit-orc-dt').value = o.dtEntrada || '';
   document.getElementById('edit-orc-dtconclusao').value = o.dtConclusao || '';
+  document.getElementById('edit-orc-pagamento').value = o.condicaoPagamento || '';
   document.getElementById('edit-orc-obs').value = o.obs || '';
   document.getElementById('modal-editar-orc').classList.add('open');
 }
@@ -1643,6 +2492,7 @@ async function salvarEdicaoOrc() {
   o.valor = parseFloat(document.getElementById('edit-orc-valor').value) || 0;
   o.dtEntrada = document.getElementById('edit-orc-dt').value;
   o.dtConclusao = document.getElementById('edit-orc-dtconclusao').value;
+  o.condicaoPagamento = document.getElementById('edit-orc-pagamento').value;
   o.obs = document.getElementById('edit-orc-obs').value;
   await save();
   closeModal('modal-editar-orc');
@@ -1898,6 +2748,8 @@ function atualizarBellBadge() {
     if (pendentes > 0) { badge.style.display = 'flex'; badge.textContent = pendentes; }
     else { badge.style.display = 'none'; }
   }
+  const badgeMenu = document.getElementById('badge-lembretes');
+  if (badgeMenu) badgeMenu.textContent = pendentes;
 }
 
 function abrirPainelLembretes() {
@@ -1946,13 +2798,53 @@ function tempoRestante(dtAlerta) {
   return { texto: d.toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}), cor: 'var(--cinza-texto)' };
 }
 
-function renderListaLembretes() {
-  const container = document.getElementById('lista-lembretes');
+// Filtra os lembretes pelos seletores de Cliente/Produto/Mês/Ano da tela dedicada (não afeta o painel do sino)
+function filtrarLembretesTela(list) {
+  const cliId = document.getElementById('lem-filter-cli')?.value || '';
+  const prodId = document.getElementById('lem-filter-prod')?.value || '';
+  const mes = document.getElementById('lem-filter-mes')?.value || '';
+  const ano = document.getElementById('lem-filter-ano')?.value || '';
+  if (!cliId && !prodId && !mes && !ano) return list;
+  const meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  return list.filter(l => {
+    const o = l.orcId ? db.orcamentos.find(x => x.id === l.orcId) : null;
+    if (cliId) {
+      if (o) { if (o.clienteId !== cliId) return false; }
+      else {
+        const cli = db.clientes.find(c => c.id === cliId);
+        if (!cli || !l.cliente || l.cliente.trim().toLowerCase() !== cli.nome.trim().toLowerCase()) return false;
+      }
+    }
+    if (prodId) {
+      if (o) { if (o.produtoId !== prodId) return false; }
+      else {
+        const prod = db.produtos.find(p => p.id === prodId);
+        if (!prod || !l.servico || !l.servico.toLowerCase().includes(prod.nome.toLowerCase())) return false;
+      }
+    }
+    if (mes || ano) {
+      const d = new Date(l.dtAlerta);
+      if (mes && meses[d.getMonth()] !== mes) return false;
+      if (ano && String(d.getFullYear()) !== ano) return false;
+    }
+    return true;
+  });
+}
+function renderListaLembretes(containerId) {
+  const cId = containerId || 'lista-lembretes';
+  const container = document.getElementById(cId);
+  if (!container) return;
+  const ehTela = cId === 'lista-lembretes-tela';
+  const list = ehTela ? filtrarLembretesTela(lembretes) : lembretes;
   if (!lembretes.length) {
     container.innerHTML = '<div class="empty-state"><div class="ei">🔔</div><p>Nenhum lembrete cadastrado</p></div>';
     return;
   }
-  const sorted = [...lembretes].sort((a,b) => {
+  if (!list.length) {
+    container.innerHTML = '<div class="empty-state"><div class="ei">🔔</div><p>Nenhum lembrete encontrado com esse filtro</p></div>';
+    return;
+  }
+  const sorted = [...list].sort((a,b) => {
     if (a.status === 'concluido' && b.status !== 'concluido') return 1;
     if (b.status === 'concluido' && a.status !== 'concluido') return -1;
     return new Date(a.dtAlerta) - new Date(b.dtAlerta);
@@ -1979,14 +2871,20 @@ function renderListaLembretes() {
   }).join('');
 }
 
+// Atualiza a lista de lembretes tanto no painel (sino) quanto na tela dedicada, se estiverem visíveis
+function refreshListasLembretes() {
+  if (document.getElementById('modal-lembretes').classList.contains('open')) renderListaLembretes('lista-lembretes');
+  if (document.getElementById('screen-lembretes').classList.contains('active')) renderListaLembretes('lista-lembretes-tela');
+}
+
 async function deletarLembrete(id) {
   lembretes = lembretes.filter(l => l.id !== id);
-  salvarLembretesLS(); atualizarBellBadge(); renderListaLembretes();
+  salvarLembretesLS(); atualizarBellBadge(); refreshListasLembretes();
 }
 
 function concluirLembrete(id) {
   const l = lembretes.find(x => x.id === id);
-  if (l) { l.status = 'concluido'; salvarLembretesLS(); atualizarBellBadge(); renderListaLembretes(); }
+  if (l) { l.status = 'concluido'; salvarLembretesLS(); atualizarBellBadge(); refreshListasLembretes(); }
 }
 
 function adiarLembrete(id) {
@@ -1994,7 +2892,7 @@ function adiarLembrete(id) {
   if (l) {
     l.dtAlerta = new Date(new Date(l.dtAlerta).getTime() + 30*60*1000).toISOString();
     l.status = 'pendente';
-    salvarLembretesLS(); renderListaLembretes();
+    salvarLembretesLS(); refreshListasLembretes();
     toast('Lembrete adiado 30 minutos');
   }
 }
@@ -2005,7 +2903,7 @@ setInterval(() => {
   lembretes.forEach(l => {
     if (l.status === 'pendente' && new Date(l.dtAlerta) <= new Date()) mudou = true;
   });
-  if (mudou) { atualizarBellBadge(); if (document.getElementById('modal-lembretes').classList.contains('open')) renderListaLembretes(); }
+  if (mudou) { atualizarBellBadge(); refreshListasLembretes(); }
 }, 30000);
 
 // ===== LEMBRETE VINCULADO A ORÇAMENTO =====
@@ -2079,11 +2977,13 @@ function agendarNotificacaoBrowser(lembrete) {
     if (!l || l.status === 'concluido') return;
     exibirAlertaLembrete(l);
     atualizarBellBadge();
-    if (document.getElementById('modal-lembretes').classList.contains('open')) renderListaLembretes();
+    refreshListasLembretes();
   }, diff);
 }
 
+let lembreteAlertaAtualId = null;
 function exibirAlertaLembrete(l) {
+  lembreteAlertaAtualId = l.id;
   // fechar qualquer modal aberto para garantir visibilidade
   document.querySelectorAll('.modal-overlay.open').forEach(m => m.classList.remove('open'));
 
@@ -2125,6 +3025,40 @@ function exibirAlertaLembrete(l) {
 
 function fecharAlerta() {
   document.getElementById('alerta-lembrete').style.display='none';
+  lembreteAlertaAtualId = null;
+}
+
+// Adia o lembrete que está sendo exibido no alerta em 30 minutos e fecha a tela de aviso
+function adiarAlertaAtual() {
+  if (lembreteAlertaAtualId) adiarLembrete(lembreteAlertaAtualId);
+  fecharAlerta();
+}
+
+// Descobre em qual tela do fluxo o orçamento está atualmente, para levar o usuário direto até lá
+function telaAtualDoOrcamento(o) {
+  if (o.followup === 'Reprovado') return 'reprovados';
+  if (o.statusInstalacao === 'Concluído') return 'concluidos';
+  if (o.followup === 'Concluído') return 'instalacao';
+  if (o.status === 'Enviado ao cliente') return 'aguardando';
+  return 'orcamentos';
+}
+
+// Confirma o andamento do serviço/venda vinculado ao lembrete: marca como concluído e leva à tela correspondente
+function confirmarAndamentoLembrete() {
+  const l = lembretes.find(x => x.id === lembreteAlertaAtualId);
+  if (!l) { fecharAlerta(); return; }
+  concluirLembrete(l.id);
+  fecharAlerta();
+  if (l.orcId) {
+    const o = db.orcamentos.find(x => x.id === l.orcId);
+    if (o) {
+      const tela = telaAtualDoOrcamento(o);
+      nav(tela);
+      toast('Andamento confirmado — orçamento em destaque em "' + (screenTitles[tela] || tela) + '"', 'success');
+      return;
+    }
+  }
+  toast('Lembrete confirmado!', 'success');
 }
 
 
@@ -2311,7 +3245,10 @@ atualizarBellBadge();
     <div class="alerta-cliente" id="alerta-cliente"></div>
     <div class="alerta-servico" id="alerta-servico"></div>
     <div class="alerta-msg" id="alerta-msg" style="display:none;"></div>
-    <button class="alerta-btn-fechar" onclick="document.getElementById('alerta-lembrete').style.display='none'">✅ Entendido — Fechar</button>
+    <div style="display:flex;gap:10px;">
+      <button class="alerta-btn-fechar" style="flex:1;background:#fff;color:var(--azul-escuro);border:1.5px solid var(--cinza-border);" onclick="adiarAlertaAtual()">⏱ Adiar 30min</button>
+      <button class="alerta-btn-fechar" style="flex:2;" onclick="confirmarAndamentoLembrete()">✅ Confirmar Andamento</button>
+    </div>
   </div>
 </div>
 
@@ -2355,6 +3292,9 @@ atualizarBellBadge();
         <div class="form-group"><label>Previsão de Conclusão</label>
           <input type="date" id="edit-orc-dtconclusao">
         </div>
+        <div class="form-group"><label>Condição de Pagamento</label>
+          <input type="text" id="edit-orc-pagamento" placeholder="Ex: À vista, 30/60 dias...">
+        </div>
         <div class="form-group"><label>Observações</label>
           <textarea id="edit-orc-obs" rows="3" style="width:100%;border:1.5px solid var(--cinza-border);border-radius:9px;padding:11px 14px;font-size:14px;font-family:inherit;resize:vertical;"></textarea>
         </div>
@@ -2364,6 +3304,48 @@ atualizarBellBadge();
       <button class="btn btn-secondary" onclick="closeModal('modal-editar-orc')">Cancelar</button>
       <button class="btn btn-primary" onclick="salvarEdicaoOrc()">💾 Salvar</button>
     </div>
+  </div>
+</div>
+
+<!-- MODAL CADASTRO RÁPIDO DE PRODUTO (a partir da lista de itens) -->
+<div class="modal-overlay modal-overlay-top" id="modal-novo-produto-rapido">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-title">📦 Cadastrar Novo Produto</div>
+    <button class="modal-close" onclick="closeModal('modal-novo-produto-rapido')">✕</button>
+    <div class="form-group" style="margin-bottom:12px;"><label>Nome do Produto/Serviço *</label><input type="text" id="npr-nome" placeholder="Ex: Chapa de Aço Galvanizada"></div>
+    <div class="form-grid" style="margin-bottom:12px;">
+      <div class="form-group"><label>Tipo</label><select id="npr-tipo"><option value="Produto">📦 Produto</option><option value="Serviço">🛠 Serviço</option></select></div>
+      <div class="form-group"><label>Unidade</label><select id="npr-unidade"><option>UN</option><option>KG</option><option>M²</option><option>M</option><option>CX</option><option>PC</option><option>HR</option><option>SV</option></select></div>
+    </div>
+    <div class="form-group" style="margin-bottom:8px;"><label>Preço Unitário (R$)</label><input type="number" id="npr-preco" placeholder="0,00" step="0.01" min="0"></div>
+    <div class="form-actions">
+      <button class="btn btn-secondary" onclick="closeModal('modal-novo-produto-rapido')">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarNovoProdutoRapido()">💾 Salvar e Usar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL VER/EDITAR ITENS DO ORÇAMENTO -->
+<div class="modal-overlay" id="modal-ver-itens">
+  <div class="modal" style="max-width:760px;">
+    <div class="modal-title">📋 Itens do Orçamento</div>
+    <button class="modal-close" onclick="closeModal('modal-ver-itens')">✕</button>
+    <div class="table-scroll">
+      <table><thead><tr><th style="width:32px;">#</th><th>Produto/Serviço</th><th style="width:80px;">Unidade</th><th style="width:90px;">Qtd</th><th style="width:110px;">Preço Unit.</th><th style="width:120px;">Preço Total</th><th style="width:60px;text-align:center;">Usado</th><th style="width:40px;"></th></tr></thead>
+      <tbody id="tbl-ver-itens"></tbody></table>
+    </div>
+    <div class="form-actions" style="margin-top:12px;">
+      <button class="btn btn-secondary btn-sm" onclick="veritemAdicionar()">+ Adicionar Item</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL VER FOTOS DE REFERÊNCIA -->
+<div class="modal-overlay" id="modal-ver-fotos">
+  <div class="modal" style="max-width:640px;">
+    <div class="modal-title">📷 Fotos de Referência</div>
+    <button class="modal-close" onclick="closeModal('modal-ver-fotos')">✕</button>
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;" id="grid-ver-fotos"></div>
   </div>
 </div>
 
