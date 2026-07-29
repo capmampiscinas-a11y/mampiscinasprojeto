@@ -1131,6 +1131,7 @@ function comboShow(inputEl, dropdownEl, items, query, novoLabel, onPick, onNovo)
   let html = filtered.length ? filtered.map(it => `<div class="combo-item" data-id="${it.id}">${it.label}</div>`).join('') : '<div class="combo-empty">Nenhum resultado encontrado</div>';
   if (novoLabel) html += `<div class="combo-item combo-item-novo" data-novo="1">${novoLabel}</div>`;
   dropdownEl.innerHTML = html;
+  dropdownEl._comboInput = inputEl; // guarda o campo associado, para poder reposicionar (em vez de fechar) em rolagens
   comboPosicionar(inputEl, dropdownEl);
   dropdownEl.style.display = 'block';
   dropdownEl.querySelectorAll('.combo-item[data-id]').forEach(el => {
@@ -1139,17 +1140,29 @@ function comboShow(inputEl, dropdownEl, items, query, novoLabel, onPick, onNovo)
   const novoEl = dropdownEl.querySelector('.combo-item-novo');
   if (novoEl) novoEl.onmousedown = (e) => { e.preventDefault(); dropdownEl.style.display = 'none'; onNovo(); };
 }
-// Fecha o dropdown ao clicar fora, ou ao rolar a página/modal (a posição é "fixed" e não acompanha o scroll)
+// Fecha o dropdown ao clicar fora dele
 document.addEventListener('click', (e) => {
   document.querySelectorAll('.combo-dropdown').forEach(dd => {
     if (dd.style.display !== 'none' && dd.parentElement && !dd.parentElement.contains(e.target)) dd.style.display = 'none';
   });
 });
-document.addEventListener('scroll', () => {
-  document.querySelectorAll('.combo-dropdown').forEach(dd => dd.style.display = 'none');
+// Ao rolar: se a rolagem for dentro da própria lista de opções, mantém aberta (é assim que se navega pela lista).
+// Se for rolagem de um contêiner ao redor (ex: o corpo do modal), a posição "fixed" não acompanha sozinha,
+// então reposiciona o dropdown para continuar colado no campo, em vez de simplesmente fechar.
+document.addEventListener('scroll', (e) => {
+  document.querySelectorAll('.combo-dropdown').forEach(dd => {
+    if (dd.style.display === 'none') return;
+    if (dd === e.target || dd.contains(e.target)) return;
+    if (dd._comboInput) comboPosicionar(dd._comboInput, dd);
+    else dd.style.display = 'none';
+  });
 }, true);
 window.addEventListener('resize', () => {
-  document.querySelectorAll('.combo-dropdown').forEach(dd => dd.style.display = 'none');
+  document.querySelectorAll('.combo-dropdown').forEach(dd => {
+    if (dd.style.display === 'none') return;
+    if (dd._comboInput) comboPosicionar(dd._comboInput, dd);
+    else dd.style.display = 'none';
+  });
 });
 
 // ---- Combo: Cliente / Fornecedor ----
